@@ -52,6 +52,12 @@ out = out;
 % Input signal
 
 
+
+
+
+
+
+
 [] = spectrogram(in,,0,N,fs);
 PSD_Welch_input = ;
 % Output signal

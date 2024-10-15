@@ -2,14 +2,14 @@
 % the spectrograms, and the power spectral densities.
 
 %% Cleanup
-clear; close all;
+clear all; close all;
 
 %% Initialize script parameters
 fs = 16000; % Sampling frequency [Hz]
 N = 32000; % Discrete Fourier Transform (DFT) size [Samples] 
 % Overlap length between subsequent frames in the
 % short-time-Fourier-transform (STFT) used to plot the spectrogra [samples]
-Noverlap = 1000; 
+Noverlap = N/2; 
 
 %% Construct signals
 t = linspace(0,2,N);
@@ -23,12 +23,15 @@ f6 = 2000;
 f7 = 4000;
 f8 = 6000;
 
-sinewave = sin(2*pi*f0*t)';
+
+f_0 = 1500;
+
+sinewave = 5*sin(2*pi*f_0*t)';
 sines = sin(2*pi*f1*t)' + sin(2*pi*f2*t)' + sin(2*pi*f3*t)'+sin(2*pi*f4*t)'+sin(2*pi*f5*t)'+sin(2*pi*f6*t)'+sin(2*pi*f7*t)'+sin(2*pi*f8*t)';
 
 white_n = wgn(N,1,0); %power is approximately 1 watt, which is 0 dBW
 
-sig = sinewave; 
+sig = white_n; 
 
 %% Play and record.
 % Call to initparams()
@@ -95,25 +98,38 @@ syntaxes.
 https://www.youtube.com/watch?v=YK1F0-3VvQI
 %}
 
-[Sin,Win,Tin] = spectrogram(in,N,Noverlap,N,fs);
-[Fin,PSD_Welch_input] = pwelch(Sin);%is dit juist? Wrm Sin en niet gwn het signaal 'in'?
+segmentLenght = 1000;
+noverlap = segmentLenght/2;
+[PSD_Welch_input,Fin] = pwelch(in,segmentLenght,noverlap);
+[PSD_Welch_output,Fout] = pwelch(out,segmentLenght,noverlap);
+
+
+
+
+%[Sin,Win,Tin] = spectrogram(in,N,Noverlap,N,fs);
+%[Fin,PSD_Welch_input] = pwelch(Sin);%is dit juist? Wrm Sin en niet gwn het signaal 'in'?
 % Output signal
-[Sout,Wout,Tout] = spectrogram(out,N,Noverlap,N,fs);
-[Fout,PSD_Welch_output] = pwelch(Sout);
+%[Sout,Wout,Tout] = spectrogram(out,N,Noverlap,N,fs);
+%[Fout,PSD_Welch_output] = pwelch(Sout);
+
+
+
+
+
 
 % Plot results
 
 
 % Input signal
 figure; subplot(2,1,1)
-plot(Fin,pow2db(PSD_Welch_input))
+plot(Fin,pow2db(PSD_Welch_input));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Input signal.')
 
 % Output signal
 subplot(2,1,2)
-plot(Fout,pow2db(PSD_Welch_output))
+plot(Fout,pow2db(PSD_Welch_output));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Output signal.')
@@ -132,19 +148,19 @@ sgtitle('Power Spectral Density estimate using Welch''s method')
 % Input signal
 figure; subplot(2,2,1)
 plot(BFin,pow2db(PSD_Bartlett_input));
-xlabel('Frequency (kHz)');
+xlabel('Frequency (Hz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Input signal.')
 % Output signal
 subplot(2,1,2)
 plot(BFout,pow2db(PSD_Bartlett_output));
-xlabel('Frequency (kHz)');
+xlabel('Frequency (Hz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Output signal.')
 sgtitle('Power Spectral Density estimate using Bartlett''s method')
 
 
-%{
+ 
 % ...using the magnitude squared of the frequency spectrum
 % Input signal
 %https://www.youtube.com/watch?v=pfjiwxhqd1M&t=110s
