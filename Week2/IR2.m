@@ -34,29 +34,57 @@ out=simout.signals.values(:,1);
 uMatrix = toeplitz(sig'); % Toeplitz matrix
 
 
-plot(out)
+%Find the max of the out signal
+c = max(out);
+c_60 = 0.6*c;
+%Find the first x value that reaches this threshold
+
+for i = 1:size(out,1)
+    if(out(i) > c_60)
+        x = i;
+        break
+    end    
+end
+
+yOnset = x; % Determine start of recorded signal [samples]
+
+y = out(yOnset-200:yOnset + N-201); % Extract the relevant output signal
+
+h =  lsqr(uMatrix,y)       ; % Estimate impulse response
+
+
+%% Calculate the IR by trimming the output
 
 %{
+c2 = max(out);
+x2 = 0;
+tol = 10^-9
 
-yOnset = ; % Determine start of recorded signal [samples]
+for i = 1:size(out,1)
+    if(abs(out(i) -c2) < tol)
+        x2 = i;
+        break
+    end
+    
+end
 
-y = out(); % Extract the relevant output signal
-
-h =  lsqr(toeplitz,y)       ; % Estimate impulse response
-
+h = out(x2-25:x2+150);
+%}
 save('channel.mat','h'); % Save impulser response
 
 %% Plot IR.
 % Time domain signal
 figure; subplot(2,1,1)
-plot();
+plot(h);
 xlabel('Time [samples]')
 ylabel('Impulse response [arb.]')
 % Magnitude response
-subplot(2,1,1)
-plot(pow2db());
+subplot(2,1,2)
+plot(pow2db(abs(h).^2));
 xlabel('Frequency [Hz]')
 ylabel('Magnitude response [dB]')
+
+%{
 
 %% Filtered white noise Vs. recorded white noise.
 sig = wgn(); % Generate white noise signal    

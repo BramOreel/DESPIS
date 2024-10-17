@@ -13,5 +13,5 @@ Shannon
 4) the channel capacity is the number of bits per second that can be transmitted over the channel (without error). Going above the channel 
    capacity is not very smart
 5) The channel capacity does kind of depend on fs. increasing fs means that simin has more samples. in result, if you keep, #windows constant, the samples per window increases.
-   K = constant. factor in front of C increases
+   K = constant. 
 

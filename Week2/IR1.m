@@ -35,8 +35,8 @@ duration = 2;
 N = duration*fs; %totaal aantal samples
 
 y = zeros(N,1);
-y = [y;1];
-y = [y;zeros(N,1)];
+y(1) = 1;
+
 
 
 
