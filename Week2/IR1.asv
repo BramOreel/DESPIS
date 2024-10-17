@@ -19,88 +19,102 @@ on the frequency axis). What do you observe?
 %% Cleanup
 clear; clc; close all
 
-
 %% Initialize script parameters.
 fs = 16000; % Sampling frequency [Hz]
-dftsize = 2; % Discrete Fourier Transform (DFT) size [Samples] 
+dftsize = 100; % Discrete Fourier Transform (DFT) size [Samples] 
 % Overlap length between subsequent frames in the
 % short-time-Fourier-transform (STFT) [samples]
-Noverlap = 1; 
+Noverlap = 0; 
+
+
 
 %% Create the signal to be played
+
 T = 1/fs;
-duration = 0.5;
-n = duration/T
+duration = 2;
+N = duration*fs; %totaal aantal samples
 
-ni = 0:n;
-y = dirac(xi);
-idx = y == Inf; % find Inf
-y(idx) = 1;     % set Inf to finite value
-stem(xi,y)
-
-%sig = [dirac(x)];                       
+y = zeros(N,1);
+y = [y;1];
+y = [y;zeros(N,1)];
 
 
+
+sig = y;                       
 
 %% Play and record.
 % Call to initparams()
-%{
 
-[] = initparams();
+
+[simin,nbsecs,fs] = initparams(sig,fs,3);
 % Call to recplay.mdl to play simin and record simout
 sim('recplay');
 % Retrieve recorded output
 out=simout.signals.values(:,1);
 
+
+
 %% Calculate the IR by trimming the output
+display
+c = max(out);
+tol = 10^-9;
+z = x(abs(out-    c)) < tol
+
+
+
+
 h = out();
+
 
 %% Plot IR.
 % Time domain signal
 figure; subplot(2,1,1)
-plot();
+plot(h);
 xlabel('Time [samples]')
 ylabel('Impulse response [arb.]')
 % Magnitude response
-subplot(2,1,1)
-plot(pow2db());
+
+subplot(2,1,2)
+plot(pow2db(abs(h).^2));
 xlabel('Frequency [Hz]')
 ylabel('Magnitude response [dB]')
 
+
+
 %% Filtered white noise Vs. recorded white noise.
-sig = wgn(); % Generate white noise signal    
+sig = wgn(N,1,0); % Generate white noise signal    
 
 % Convolve the IR with the white noise
-gen_noise = fftfilt();                  
+gen_noise = fftfilt(h,sig);                  
 
 % Send the white noise across the channel
-[] = initparams();
+[simin,nbsecs,fs] = initparams(gen_noise,fs,3);
 sim('recplay');
-rec_noise=simout.signals.values(:,1);
+rec_noise= simout.signals.values(:,1);
+
 
 %% Spectrogram and PSD plot
 % Spectrogram
-spectrogram(); % Generated white noise
-spectrogram(); % Recorded white noise
+spectrogram(sig,fs); % Generated white noise
+spectrogram(rec_noise,fs); % Recorded white noise
 
 % PSD
-[] = spectrogram(); % Generated white noise
-[] = spectrogram(); % Recorded white noise
+[s1,f1,t1] = spectrogram(sig,fs); % Generated white noise
+[s2,f2,t2] = spectrogram(rec_noise,fs); % Recorded white noise
 
-PSD_gen_noise = ; % Generated white noise PSD
-PSD_rec_noise = ; % Recorded white noise PSD (ideally only when the signal is active)
+PSD_gen_noise = sum(abs(s1).^2,2)/T; % Generated white noise PSD
+PSD_rec_noise = sum(abs(s2).^2,2)/T; % Recorded white noise PSD (ideally only when the signal is active)
 
 figure;
-plot(,pow2db());
+subplot(1,2,1)
+plot(f1,pow2db(PSD_gen_noise));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Generated white noise.')
 % Output signal
-subplot(2,2)
-plot(,pow2db());
+subplot(1,2,2)
+plot(f2,pow2db(PSD_rec_noise));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Output signal.')
 sgtitle('Recorded white noise')
-
-%}

@@ -31,7 +31,7 @@ sines = sin(2*pi*f1*t)' + sin(2*pi*f2*t)' + sin(2*pi*f3*t)'+sin(2*pi*f4*t)'+sin(
 
 white_n = wgn(N,1,0); %power is approximately 1 watt, which is 0 dBW
 
-sig = white_n; 
+sig = sinewave; 
 
 %% Play and record.
 % Call to initparams()
@@ -100,8 +100,8 @@ https://www.youtube.com/watch?v=YK1F0-3VvQI
 
 segmentLenght = 1000;
 noverlap = segmentLenght/2;
-[PSD_Welch_input,Fin] = pwelch(in,segmentLenght,noverlap);
-[PSD_Welch_output,Fout] = pwelch(out,segmentLenght,noverlap);
+[PSD_Welch_input,Fin] = pwelch(in,segmentLenght,noverlap,fs);
+[PSD_Welch_output,Fout] = pwelch(out,segmentLenght,noverlap,fs);
 
 
 

@@ -36,10 +36,10 @@ uMatrix = toeplitz(sig'); % Toeplitz matrix
 
 plot(out)
 
-%{
+
 
 yOnset = ; % Determine start of recorded signal [samples]
-
+%{
 y = out(); % Extract the relevant output signal
 
 h =  lsqr(toeplitz,y)       ; % Estimate impulse response
