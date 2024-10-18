@@ -100,8 +100,8 @@ https://www.youtube.com/watch?v=YK1F0-3VvQI
 
 segmentLenght = 1000;
 noverlap = segmentLenght/2;
-[PSD_Welch_input,Fin] = pwelch(in,segmentLenght,noverlap,fs);
-[PSD_Welch_output,Fout] = pwelch(out,segmentLenght,noverlap,fs);
+[PSD_Welch_input,Fin] = pwelch(in,segmentLenght,noverlap,N,fs);
+[PSD_Welch_output,Fout] = pwelch(out,segmentLenght,noverlap,N,fs);
 
 
 
@@ -165,12 +165,15 @@ sgtitle('Power Spectral Density estimate using Bartlett''s method')
 % Input signal
 %https://www.youtube.com/watch?v=pfjiwxhqd1M&t=110s
 %opm: magnitude van de fft zegt niets over de amplitude van het signaal!
-Nin = length(in);
-indft = fft(in);
-indft = indft(1:Nin/2+1);
-psdin = (1/(fs*Nin))* abs(indft).^2;
-psdin(2:end-1) = 2*psdin(2:end-1); % A = 2/N * abs(fft) en psd = A^2/2
-Power_fft_squared_input = psdin; % Compute magnitude absolute value squared of the fft of the input
+
+
+
+Nin = length(in); %3200
+indft = fft(in); %3200
+indft = abs(indft).^2; %magnitude squared
+
+
+Power_fft_squared_input = indft; % Compute magnitude absolute value squared of the fft of the input
 % Rescaling and computations to calcualte the one sided PSD to be
 % consistent with 'periodogram' (You can ignore the following lines)
 Power_fft_squared_input = Power_fft_squared_input/(length(in)*fs);
@@ -178,13 +181,18 @@ PSD_fft_squared_input = Power_fft_squared_input(1:floor(length(in)/2)+1);
 PSD_fft_squared_input(2:ceil(length(in)/2)) = ...
     PSD_fft_squared_input(2:ceil(length(in)/2)) + ...
     flipud(Power_fft_squared_input(floor(length(in)/2)+2:length(in)));
+
+
 % Ouput signal
 Nout = length(out);
 outdft = fft(out);
-outdft = outdft(1:Nout/2+1);
-psdout = (1/(fs*Nout))* abs(outdft).^2;
-psdout(2:end-1) = 2*psdout(2:end-1); % A = 2/N * abs(fft) en psd = A^2/2
-Power_fft_squared_output = psdout; % Compute magnitude absolute value squared of the fft of the output
+
+
+%outdft = outdft(1:Nout-1);
+outdft = abs(outdft).^2;
+
+
+Power_fft_squared_output = outdft; % Compute magnitude absolute value squared of the fft of the output
 % Rescaling and computations to calculate the one sided PSD to be
 % consistent with 'periodogram' (You can ignore the following lines)
 Power_fft_squared_output = Power_fft_squared_output/(length(out)*fs);
@@ -194,16 +202,25 @@ PSD_fft_squared_output(2:ceil(length(out)/2)) = ...
     flipud(Power_fft_squared_output(floor(length(out)/2)+2:length(out)));
 
 % Plot results
-lengte = length(0:fs/length(in):fs/2)
-lengte2 = length(Power_fft_squared_output)
+%lengte = length(0:fs/length(in):fs/2) = 16001
+%lengte2 = length(Power_fft_squared_output) = 80128
+
 % Input signal
+%reeel signaal, dus slechts helft van het spectrum nodig
+Power_fft_squared_input = Power_fft_squared_input(1:floor(Nin/2+1));
+
 figure; subplot(2,2,1)
+
 plot((0:fs/length(in):fs/2),pow2db(Power_fft_squared_input));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Input signal.')
 % Output signal
+
+Power_fft_squared_output = Power_fft_squared_output(1:floor(Nout/2+1));
 subplot(2,1,2)
+
+
 plot((0:fs/length(out):fs/2),pow2db(Power_fft_squared_output));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
