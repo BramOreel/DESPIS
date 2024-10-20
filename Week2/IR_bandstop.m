@@ -1,26 +1,15 @@
-% Channel estimation according to the IR2 method
 
-%% Cleanup
-clear; clc; close all
 
-%% Initialize script parameters.
-fs = 16000; % Sampling frequency [Hz]
-dftsize = 100; % Discrete Fourier Transform (DFT) size [Samples] 
-% Overlap length between subsequent frames in the
-% short-time-Fourier-transform (STFT) [samples]
-Noverlap = dftsize/2; 
-channelLength = 200; % Length of impulse response [samples]
-delay = 200; % Positive delay safety margin when aligning input and output [samples]
 
-%% Create the signal to be played.
-duration = 1; % Duration of the signal in [s]
-N = duration*fs;
-sig = wgn(N,1,0);  
 
 %% Filter signal -> only to be used for exercise 2.3 (To this end, also copy the content
 %% of the current file to a new IR_bandstop.m file)
 % filt = fir1();
 % sig = fftfilt();
+noise = wgn(N,1,0);
+duration = 3;
+fs = 16000;
+sig = BS_white_noise(duration, fs, noise);
 
 %% Play and record.
 % Call to initparams()

@@ -44,7 +44,7 @@ out=simout.signals.values(:,1);
 %% Compute and plot the spectrogram
 
 % Input signal
-figure; subplot(2,2,1)
+figure; subplot(2,1,1)
 %spectrogram(xc,win,noverlap,FFT_LENGTH,fs,'yaxis')
 spectrogram(sig,hamming(N),Noverlap,N,fs,"power")
 title('Input signal.')
@@ -122,14 +122,14 @@ noverlap = segmentLenght/2;
 
 % Input signal
 figure; subplot(2,1,1)
-plot(Fin,pow2db(PSD_Welch_input));
+plot(Fin.*10^(-3),pow2db(PSD_Welch_input));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Input signal.')
 
 % Output signal
 subplot(2,1,2)
-plot(Fout,pow2db(PSD_Welch_output));
+plot(Fout.*10^(-3),pow2db(PSD_Welch_output));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Output signal.')
@@ -146,7 +146,7 @@ sgtitle('Power Spectral Density estimate using Welch''s method')
 % Plot results
 
 % Input signal
-figure; subplot(2,2,1)
+figure; subplot(2,1,1)
 plot(BFin,pow2db(PSD_Bartlett_input));
 xlabel('Frequency (Hz)');
 ylabel('Power/frequency (dB/Hz)')
@@ -209,9 +209,9 @@ PSD_fft_squared_output(2:ceil(length(out)/2)) = ...
 %reeel signaal, dus slechts helft van het spectrum nodig
 Power_fft_squared_input = Power_fft_squared_input(1:floor(Nin/2+1));
 
-figure; subplot(2,2,1)
+figure; subplot(2,1,1)
 
-plot((0:fs/length(in):fs/2),pow2db(Power_fft_squared_input));
+plot((0:fs/length(in):fs/2).*10^(-3),pow2db(Power_fft_squared_input));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Input signal.')
@@ -221,7 +221,7 @@ Power_fft_squared_output = Power_fft_squared_output(1:floor(Nout/2+1));
 subplot(2,1,2)
 
 
-plot((0:fs/length(out):fs/2),pow2db(Power_fft_squared_output));
+plot((0:fs/length(out):fs/2).*10^(-3),pow2db(Power_fft_squared_output));
 xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('Output signal.')

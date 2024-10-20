@@ -77,12 +77,12 @@ h = out(x-25:x+150);
 %% Plot IR.
 % Time domain signal
 figure; subplot(2,1,1)
-plot(h);
+plot(1:N, h);
 xlabel('Time [samples]')
 ylabel('Impulse response [arb.]')
 % Magnitude response
 subplot(2,1,2)
-plot((0:fs/length(h):fs-fs/length(h)), pow2db(abs(h).^2));
+plot((0:fs/length(h):fs-fs/length(h)), mag2db(abs(h)));
 xlabel('Frequency [Hz]')
 ylabel('Magnitude response [dB]')
 
@@ -143,18 +143,18 @@ ylabel('filtered noise')
 
 
 % Convolve the IR with the white noise
-con_noise = fftfilt(h,filtered_noise); %IR convolueren met gefilterde ruis signaal
+tot_noise = fftfilt(h,filtered_noise); %IR convolueren met gefilterde ruis signaal
 %this should yield an output signal with similar characteristics as the recorded signal (why?).
 
 %dirac in frequentiedom is ook een dirac
 
 % Send the white noise across the channel
-[simin,nbsecs,fs] = initparams(con_noise,fs,3);
+[simin,nbsecs,fs] = initparams(tot_noise,fs,3);
 sim('recplay');
 rec_noise= simout.signals.values(:,1);
 
 subplot(4,1,3)
-plot(con_noise)
+plot(tot_noise)
 ylabel('h*noise')
 
 subplot(4,1,4)
@@ -179,7 +179,7 @@ Welch’s method.
 figure; 
 title('spectogram')
 subplot(2,1,1)
-spectrogram(con_noise,N); % Generated white noise
+spectrogram(tot_noise,N); % Generated white noise
 subplot(2,1,2)
 spectrogram(rec_noise,N); % Recorded white noise
 
