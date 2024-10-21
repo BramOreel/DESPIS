@@ -5,22 +5,14 @@ N = duration*fs;
 windowS = 1024;
 Noverlap = windowS/2;
 
-distance_vec = zeros(10,1);
-l =1;
-p = input('type d when done',"s");
-while(p ~= 'd')
-display(l)
-
-
-
-%We will start by calculating the power of the noise
+%We will start by calculating the power of the noise (silence)
 white_n = zeros(N,1);
 white_n(1) = 0.0001;
 [ simin,nbsecs,fs] = initparams(white_n,fs,3);
 sim('recplay');
 % Retrieve recorded output
 out=simout.signals.values(:,1);
-%Calculate PSD
+%Calculate PSD noise
 [s1,f1,t1,P] = spectrogram(out,windowS,Noverlap,windowS,fs);
 PSD_rec_noise = sum(P,2);
 
@@ -54,9 +46,16 @@ yOnset = x; % Determine start of recorded signal [samples]
 
 y = out2(yOnset-200:yOnset + N-201); % Extract the relevant output signal
 
-%Calculate PSD
+%Dit ook nog eens testen
+
+
+%Calculate PSD signal
 [s2,f2,t2,P2] = spectrogram(y,windowS,Noverlap,windowS,fs);
 PSD_rec_sig = sum(P2,2);
+
+%Calculate PSD noise
+[s1,f1,t1,P] = spectrogram(out2(1:yOnset-200),windowS,Noverlap,windowS,fs);
+PSD_rec_noise = sum(P,2);
 
 
 
@@ -78,16 +77,3 @@ for k = 1:windowS/2
 end
 C_channel = C_channel*fs/windowS;
 display(C_channel)
-
-
-
-
-
-distance_vec(l) = C_channel;
-%Test the dependancy between distance & capacity
-l = l+1; 
-p = input('type d when done',"s");
-end
-
-
-display(distance_vec)

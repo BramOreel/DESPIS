@@ -56,7 +56,7 @@ y = out(yOnset-delay:yOnset + N-delay-1); % Extract the relevant output signal
 %spectrogram(xc,win,noverlap,FFT_LENGTH,fs,'yaxis')
 
 %spectrogram output Welch
-[s1,f1,t1,P1] = spectrogram(y,windowS,Noverlap,N/2,fs);
+[s1,f1,t1,P1] = spectrogram(y,windowS,Noverlap,N/2,fs);  %N/2 moet mss gwn windowS zijn
 PSD_rec_noise = sum(P1,2)*fs;
 
 %spectrogram input Welch
@@ -181,6 +181,18 @@ ylabel('Magnitude response [dB]')
 %% IR2
 uMatrix = toeplitz(sig'); % Toeplitz matrix van de ruis
 h2 =  lsqr(uMatrix,y,0.1)       ; % Estimate impulse response
+%Trim the impulse response
+c3 = max(h2); %impuls respons vinden
+x3 = 0;
+
+for i = 1:size(h2,1)
+    if(abs(h2(i) -c3) < tol)
+        x3 = i;
+        break
+    end
+end
+h2 = h2(x3-25:x3+150);
+
 save('channel.mat','h2'); % Save impulser response
 
 %% Plot IR.
@@ -200,3 +212,5 @@ ylabel('Magnitude response [dB]')
 
 
 %% Advanced shannon
+%run the compute_shannon file
+
