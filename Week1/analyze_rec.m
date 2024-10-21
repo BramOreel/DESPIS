@@ -24,7 +24,7 @@ f7 = 4000;
 f8 = 6000;
 
 
-f_0 = 1500;
+f_0 = 400;
 
 sinewave = 5*sin(2*pi*f_0*t)';
 sines = sin(2*pi*f1*t)' + sin(2*pi*f2*t)' + sin(2*pi*f3*t)'+sin(2*pi*f4*t)'+sin(2*pi*f5*t)'+sin(2*pi*f6*t)'+sin(2*pi*f7*t)'+sin(2*pi*f8*t)';

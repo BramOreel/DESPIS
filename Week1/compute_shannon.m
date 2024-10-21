@@ -21,7 +21,7 @@ sim('recplay');
 % Retrieve recorded output
 out=simout.signals.values(:,1);
 %Calculate PSD
-[s1,f1,t1,P] = spectrogram(white_n,windowS,Noverlap,windowS,fs);
+[s1,f1,t1,P] = spectrogram(out,windowS,Noverlap,windowS,fs);
 PSD_rec_noise = sum(P,2);
 
 
