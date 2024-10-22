@@ -9,15 +9,15 @@ duration = 1;
 N = fs*duration; % Discrete Fourier Transform (DFT) size [Samples] 
 % Overlap length between subsequent frames in the
 % short-time-Fourier-transform (STFT) used to plot the spectrogra [samples]
-windowS = 8000;
+windowS = 1024;
 Noverlap = windowS/2; 
 delay = 200;
 
 
 %Sinewave
-t = linspace(0,2,N);
+t = linspace(0,duration,N);
 f_0 = 400;
-sinewave = 5*sin(2*pi*f_0*t)';
+sinewave = sin(2*pi*f_0*t)';
 
 
 
@@ -28,7 +28,7 @@ sig = white_n;
 
 % Play and record.
 % Call to initparams()
-[ simin,nbsecs,fs] = initparams(sig,fs);
+[ simin,nbsecs,fs] = initparams(sig,fs,3);
 % Call to recplay.mdl to play simin and record simout
 sim('recplay');
 % Retrieve recorded output
@@ -56,19 +56,19 @@ y = out(yOnset-delay:yOnset + N-delay-1); % Extract the relevant output signal
 %spectrogram(xc,win,noverlap,FFT_LENGTH,fs,'yaxis')
 
 %spectrogram output Welch
-[s1,f1,t1,P1] = spectrogram(y,windowS,Noverlap,N/2,fs);  %N/2 moet mss gwn windowS zijn
+[s1,f1,t1,P1] = spectrogram(y,hamming(windowS),Noverlap,windowS,fs);  %N/2 moet mss gwn windowS zijn
 PSD_rec_noise = sum(P1,2)*fs;
 
 %spectrogram input Welch
-[s2,f2,t2,P2] = spectrogram(sig,windowS,Noverlap,N/2,fs);
+[s2,f2,t2,P2] = spectrogram(sig,hamming(windowS),Noverlap,windowS,fs);
 PSD_gen_noise = sum(P2,2)*fs;
 
 %PSD Bartlett input
-[s3,f3,t3,P3] = spectrogram(sig,windowS,0,N/2,fs);
+[s3,f3,t3,P3] = spectrogram(sig,windowS,0,windowS,fs);
 PSD_Bartlett_input = sum(P3,2)*fs;
 
 %PSD Bartlett output
-[s4,f4,t4,P4] = spectrogram(y,windowS,0,N/2,fs);
+[s4,f4,t4,P4] = spectrogram(y,windowS,0,windowS,fs);
 PSD_Bartlett_output = sum(P4,2)*fs;
 
 
@@ -77,23 +77,23 @@ PSD_Bartlett_output = sum(P4,2)*fs;
 % Input signal
 figure; subplot(2,2,1)
 %spectrogram(xc,win,noverlap,FFT_LENGTH,fs,'yaxis')
-spectrogram(sig,windowS,Noverlap,N/2,fs);
+spectrogram(sig,hamming(windowS),Noverlap,windowS,fs);
 title('Input signal Welch.')
 
 % Output signal
 subplot(2,2,2)
-spectrogram(y,windowS,Noverlap,N/2,fs);
+spectrogram(y,hamming(windowS),Noverlap,windowS,fs);
 title('Output signal Welch.')
 
 
 %spectrogram(xc,win,noverlap,FFT_LENGTH,fs,'yaxis')
 subplot(2,2,3)
-spectrogram(sig,windowS,0,N/2,fs);
+spectrogram(sig,windowS,0,windowS,fs);
 title('Input signal Bartlett.')
 
 % Output signal
 subplot(2,2,4)
-spectrogram(y,windowS,0,N/2,fs);
+spectrogram(y,windowS,0,windowS,fs);
 title('Output signal Bartlett.')
 sgtitle('Spectrogram estimate')
 
@@ -165,19 +165,25 @@ for i = 1:size(out2,1)
         break
     end
 end
+yOnset2 = x2;
+
+y2 = out2(yOnset2-delay:yOnset2 + N-delay-1);
 h = out2(x2-25:x2+150);
 % Time domain signal
 figure; subplot(2,1,1)
 plot(h);
 xlabel('Time [samples]')
 ylabel('Impulse response [arb.]')
+title('time response')
 % Magnitude response
 subplot(2,1,2)
-plot((0:fs/length(h):fs-fs/length(h)), mag2db(abs(h)));
+dfth = fft(y2);
+dfth = dfth(1:N/2+1);
+plot(0:2*fs/N:fs,mag2db(abs(dfth)));
 xlabel('Frequency [Hz]')
 ylabel('Magnitude response [dB]')
-
-
+title('Frequency response')
+sgtitle('Impulse response from dirac recording')
 %% IR2
 uMatrix = toeplitz(sig'); % Toeplitz matrix van de ruis
 h2 =  lsqr(uMatrix,y,0.1)       ; % Estimate impulse response
@@ -191,26 +197,37 @@ for i = 1:size(h2,1)
         break
     end
 end
-h2 = h2(x3-25:x3+150);
+h2_trim = h2(x3-25:x3+150);
 
 save('channel.mat','h2'); % Save impulser response
 
 %% Plot IR.
 % Time domain signal
 figure; subplot(2,1,1)
-plot(1:N,h2);
+plot(h2_trim);
 xlabel('Time [samples]')
 ylabel('Impulse response [arb.]')
-
+title('time response')
 % Magnitude response
 subplot(2,1,2)
 dfth = fft(h2);
 dfth = dfth(1:N/2+1);
-plot(0:2*fs/N:fs,mag2db(abs(dfth))); %anders omdat hier fft wordt gebruikt?
+plot(0:2*fs/N:fs,mag2db(abs(dfth))); %anders omdat hier fft wordt gebruikt? % 
 xlabel('Frequency [Hz]')
 ylabel('Magnitude response [dB]')
-
+title('frequency response')
+sgtitle('Impulse response calculqted using lsqr method')
 
 %% Advanced shannon
 %run the compute_shannon file
+
+%% 2-3
+%run the 2-3 file
+
+
+
+
+
+
+
 

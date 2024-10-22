@@ -49,7 +49,7 @@ scaled_toplay = toplay./max_amp;
 simin = [scaled_toplay  zeros(size(scaled_toplay))];
 
 %% Calculate number of seconds in simin
-nbsecs = 5;
+nbsecs = size(simin,1)/fs;
 
 %% Asserting correctness of the dimensions of simin
 % nbsecs should be a scalar

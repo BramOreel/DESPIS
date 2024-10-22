@@ -4,12 +4,28 @@
 
 %% Filter signal -> only to be used for exercise 2.3 (To this end, also copy the content
 %% of the current file to a new IR_bandstop.m file)
-% filt = fir1();
-% sig = fftfilt();
-noise = wgn(N,1,0);
-duration = 3;
-fs = 16000;
-sig = BS_white_noise(duration, fs, noise);
+% Parameters
+Fs = 16000;                % Sampling frequency (Hz)
+f1 = 700;                  % Lower stopband frequency (Hz)
+f2 = 3000;                 % Upper stopband frequency (Hz)
+M = 100;                   % Filter order
+delay = 200;
+duration = 1;
+N = duration*fs;
+
+% Normalize frequencies with respect to Nyquist frequency (Fs/2)
+Wn = [f1 f2] / (Fs/2);
+
+% Design band-stop filter using fir1
+b = fir1(M, Wn, 'stop');
+
+% Plot the frequency response
+%freqz(b, 1, 1024, Fs);
+
+% If you have a signal to filter, say x
+sig = filter(b, 1, wgn(N,1,0));    % Apply the filter to the signal
+
+
 
 %% Play and record.
 % Call to initparams()
@@ -17,15 +33,7 @@ sig = BS_white_noise(duration, fs, noise);
 % Call to recplay.mdl to play simin and record simout
 sim('recplay');
 % Retrieve recorded output
-out=simout.signals.values(:,1);
-
-%figure; 
-%subplot(3,1,1)
-%plot(sig)
-
-%subplot(3,1,2)
-
-%plot(out)
+out= simout.signals.values(:,1);
 
 %% Calculate the impulse response.
 uMatrix = toeplitz(sig'); % Toeplitz matrix van de ruis
@@ -35,8 +43,8 @@ uMatrix = toeplitz(sig'); % Toeplitz matrix van de ruis
 c = max(out);
 c_60 = 0.6*c;
 x = 0;
-%Find the first x value that reaches this threshold
 
+%Find the first x value that reaches this threshold
 for i = 1:size(out,1)
     if(out(i) > c_60)
         x = i;
@@ -45,11 +53,8 @@ for i = 1:size(out,1)
 end
 
 Onset = x; % Determine start of recorded signal [samples]
-
-%y = out(yOnset-200:yOnset + N-201); % Extract the relevant output signal
 y = out(Onset-delay:Onset + N-delay-1);
-%subplot(3,1,3)
-%plot(y)
+
 %Causaal maken: shiften van out om h causaal te maken:
 
 
