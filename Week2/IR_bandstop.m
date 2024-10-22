@@ -4,8 +4,9 @@
 
 %% Filter signal -> only to be used for exercise 2.3 (To this end, also copy the content
 %% of the current file to a new IR_bandstop.m file)
+clear all; close all;
 % Parameters
-Fs = 16000;                % Sampling frequency (Hz)
+fs = 16000;                % Sampling frequency (Hz)
 f1 = 700;                  % Lower stopband frequency (Hz)
 f2 = 3000;                 % Upper stopband frequency (Hz)
 M = 100;                   % Filter order
@@ -14,7 +15,7 @@ duration = 1;
 N = duration*fs;
 
 % Normalize frequencies with respect to Nyquist frequency (Fs/2)
-Wn = [f1 f2] / (Fs/2);
+Wn = [f1 f2] / (fs/2);
 
 % Design band-stop filter using fir1
 b = fir1(M, Wn, 'stop');
@@ -25,7 +26,14 @@ b = fir1(M, Wn, 'stop');
 % If you have a signal to filter, say x
 sig = filter(b, 1, wgn(N,1,0));    % Apply the filter to the signal
 
-
+%{
+%het volgende is zonder de functie 'filter', maar ze geven hetzelfde
+resultaat
+tot = fftfilt(b,wgn(N,1,0)); %tijdsdomein
+freq_totdft = fft(tot);
+freq_totdft = freq_totdft(1:N/2+1);
+sig = tot;
+%}
 
 %% Play and record.
 % Call to initparams()
