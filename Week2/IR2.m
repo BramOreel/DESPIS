@@ -104,7 +104,7 @@ subplot(2,1,2)
 spectrogram(rec_noise,N); % Recorded white noise
 
 % PSD
-[s1,f1,t1] = spectrogram(sig,N,); % Generated white noise
+[s1,f1,t1] = spectrogram(sig,N); % Generated white noise
 [s2,f2,t2] = spectrogram(rec_noise,N); % Recorded white noise
 
 PSD_gen_noise = sum(abs(s1).^2,2)*fs; % Generated white noise PSD
