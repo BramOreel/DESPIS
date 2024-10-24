@@ -1,0 +1,37 @@
+%% Cleanup
+clear; clc; close all;
+
+%% Parameters
+L = 1024; % Scalar length of binary sequence [samples]
+SNRs = ; % List of SNR values to consider [dB]
+N = ; % List of number of bits per QAM symbol to consider
+
+%% Calculate BER for each constellation-SNR combination.
+BERs = ; % Placeholder for BERs
+for n= % Loop across values of N
+    for SNRidx = % Loop across SNR values
+        % Initialize simulation parameters.
+        M = ; % QAM constellation size
+        SNR = ; % SNR
+        
+        % Generate a pseudo random binary sequence of a user defined length.
+        bit_seq = randi([0, 1], 1,L)' ;
+        
+        % Modulate bit sequence.
+        QAM_seq = qam_mod(bit_seq,64) ;
+        
+        % Add white Gaussian noise.
+        req_QAM_seq  = ;        
+
+        % Demodulate QAM sequence.
+        rec_bit_seq = ;
+        
+        % Calculate BER.
+        BERs() = ;
+    end
+end
+
+% Plot results.
+semilogy();
+ylabel();
+xlabel();
