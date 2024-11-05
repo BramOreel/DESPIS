@@ -2,7 +2,7 @@
 clear; clc; close all;
 
 %% Parameters
-SNR = 30; % Signal-to-noise ratio [dB]
+SNR = 10^10; % Signal-to-noise ratio [dB]
 M = 16; % QAM constellation size
 N = 16; % Number of symbols per OFDM frame, i.e., the DFT size
 L = 10000; % Binary sequence length [samples]
@@ -19,16 +19,16 @@ bit_seq = randi([0, 1], 1,L)';
 OFDM_seq = ofdm_mod(QAM_seq,N,2,4);
 
 % Add white Gaussian noise.
-rec_OFDM_seq  = awgn(OFDM_seq,SNR); 
+rec_OFDM_seq  = awgn(QAM_seq,SNR); 
 
 % Demodulate OFDM sequence.
-rec_QAM_seq = ofdm_demod(rec_OFDM_seq,N,2,4);
+rec_QAM_seq = ofdm_demod(OFDM_seq,N,2,4);
 
 % Demodulate QAM sequence.
-rec_bit_seq = qam_demod(rec_QAM_seq,M,L,x);
+%rec_bit_seq = ;
 
 % Calculate BER.
-BER = ber(bit_seq,rec_bit_seq);
+%BER = ;
 
 
 

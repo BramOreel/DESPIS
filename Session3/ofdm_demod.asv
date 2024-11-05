@@ -109,11 +109,15 @@ epsilon = 10^-10;  % Smallest positive normalized number
 
 % Loop backwards through the array to find the last valid element
 idx = length(data_seq);  % Start at the last element
-while idx > 0 && (abs(real(data_seq(idx))) < epsilon && abs(imag(data_seq(idx))) < epsilon)
+while idx > 0 && (abs(real(dat(idx))) < epsilon && abs(imag(arr(idx))) < epsilon)
     idx = idx - 1;  % Move backwards to the previous element
 end
 
 % Truncate the array up to the last valid element
-data_seq = data_seq(1:idx);
+shrunk_arr = arr(1:idx);
+
+
+
+
 
 end

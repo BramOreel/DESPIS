@@ -50,19 +50,24 @@ end
 
 %% Construct the OFDM sequence
 % Put the QAM symbols into matrix of N/2-1 rows
-QAM_matrix = ; 
+padLength = abs(mod(size(QAM_seq,1),(N/2)-1) -((N/2)-1)) ; % Number of bits to append such that it can be divided nicely into the M-ary QAM format
+QAM_seq = [QAM_seq; zeros(padLength,1)];
+
+
+
+QAM_matrix = reshape(QAM_seq,N/2-1,[]); 
 
 % Construct the OFDM frames according to Figure 2 in session 3
-fOFDM_frame = [];
+fOFDM_frame = [zeros(1,size(QAM_matrix,2)) ; QAM_matrix ; zeros(1,size(QAM_matrix,2)) ; conj(flipud(QAM_matrix)) ];
 
 % Apply the inverse Fourier transform (IFFT)
-OFDM_frame = ;
+OFDM_frame = ifft(fOFDM_frame);
 
 % Add in the cyclic prefix
-OFDM_frame = [];
+%OFDM_frame = [];
 
 % Serialize the set of OFDM frames
-OFDM_seq = ;
+OFDM_seq = OFDM_frame(:);
 
 end
 
