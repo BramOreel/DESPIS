@@ -7,7 +7,7 @@ Nq = 5; %length of bit sequence
 M = 2^Nq; % QAM constellation size
 %channel = ; % Impulse response of channel
 N = 16; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 7;
+Lcp = 4;
 
 %% Channel effect experiment
 % bit stream 

@@ -51,8 +51,10 @@ end
 %% Construct the OFDM sequence
 % Put the QAM symbols into matrix of N/2-1 rows
 padLength = abs(mod(size(QAM_seq,1),(N/2)-1) -((N/2)-1)) ; % Number of bits to append such that it can be divided nicely into the M-ary QAM format
+if(padLength == N/2-1)
+    padLength = 0;
+end
 QAM_seq = [QAM_seq; zeros(padLength,1)];
-
 
 
 QAM_matrix = reshape(QAM_seq,N/2-1,[]); 
