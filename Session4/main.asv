@@ -14,13 +14,13 @@ ofdmStream = ofdm_mod(qamStream, 16, 7,4 );
 
 % Channel
 SNR = 10^10;
-H = [];
-a = 2;
+syms z;
+Hz = 1/z;
 for i = 1:length(ofdmStream)
-    H(i) = 1/(a*i); %channel order = L = 2
+    H(i) = subs(Hz, );
 end
-h = ifft(H');
 
+h = ifft(H');
 rxOfdmStream = h.*ofdmStream;
 
 % OFDM demodulation
