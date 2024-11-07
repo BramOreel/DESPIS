@@ -15,6 +15,10 @@ function [ QAM_seq , x ] = qam_mod( bit_seq, M )
 %% Append zero-bits to the end of the sequence to make the sequence 
 N = log2(M); % Number of bits per QAM symbol
 padLength = abs(mod(size(bit_seq,1),N) -N) ; % Number of bits to append such that it can be divided nicely into the M-ary QAM format
+if(padLength == N)
+    padLength = 0;
+end
+
 bit_seq = [bit_seq; zeros(padLength,1)]; % Padded bit sequence
 
 % Check that the bit sequence is correctly padded
