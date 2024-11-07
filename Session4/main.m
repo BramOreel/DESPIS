@@ -10,16 +10,24 @@ clear; close all; clc;
 qamStream = qam_mod(bitStream, bitsPerPixel); 
 
 % OFDM modulation
-ofdmStream = ofdm_mod(qamStream, );
+ofdmStream = ofdm_mod(qamStream, 16, 7,4 );
 
 % Channel
-rxOfdmStream = ofdmStream;
+SNR = 10^10;
+H = [];
+a = 2;
+for i = 1:length(ofdmStream)
+    H(i) = 1/(a*i); %channel order = L = 2
+end
+h = ifft(H');
+
+rxOfdmStream = h.*ofdmStream;
 
 % OFDM demodulation
-rxQamStream = rxOfdmStream;
+rxQamStream = ofdm_demod(rxOfdmStream, 16, 7,4);
 
 % QAM demodulation
-rxBitStream = rxQamStream;
+rxBitStream = qam_demod(rxQamStream, bitsPerPixel, length(bitStream),4);
 
 % Compute BER
 % berTransmission = ber(bitStream,rxBitStream);
