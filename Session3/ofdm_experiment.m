@@ -53,6 +53,8 @@ BER = ber(bit_seq,rec_bit_seq);
 %
 %Symmetry because we want ifft to be real
 
+%%Question 5 and 6:
+
 
 
 
