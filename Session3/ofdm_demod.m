@@ -84,10 +84,10 @@ end
 
 %% Perform OFDM demodulation
 % Reshape the received OFDM sequence (serial to parallel conversion)
-OFDM_matrix = reshape(OFDM_seq,N,[]);
+OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
 
 % Remove the cyclic prefix (you can ignore this until exercise 3.2.4)
-%OFDM_matrix = ;
+OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
 
 % Apply fft operation
 QAM_matrix = fft(OFDM_matrix);

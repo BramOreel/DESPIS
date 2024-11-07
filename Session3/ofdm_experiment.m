@@ -6,7 +6,7 @@ SNR = 30; % Signal-to-noise ratio [dB]
 M = 16; % QAM constellation size
 N = 16; % Number of symbols per OFDM frame, i.e., the DFT size
 L = 10000; % Binary sequence length [samples]
-%Lcp = ; % Cyclic prefix length [Samples] (you can ignore this until exercise 3.2.4)
+Lcp = 3; % Cyclic prefix length [Samples] (you can ignore this until exercise 3.2.4)
 
 %% OFDM experiment
 % Generate a pseudo random binary sequence of a user defined length.
@@ -16,13 +16,13 @@ bit_seq = randi([0, 1], 1,L)';
 [QAM_seq,x] = qam_mod(bit_seq,M);
 
 % Modulate QAM sequence using OFDM.
-OFDM_seq = ofdm_mod(QAM_seq,N,2,4);
+OFDM_seq = ofdm_mod(QAM_seq,N,Lcp,4);
 
 % Add white Gaussian noise.
 rec_OFDM_seq  = awgn(OFDM_seq,SNR); 
 
 % Demodulate OFDM sequence.
-rec_QAM_seq = ofdm_demod(rec_OFDM_seq,N,2,4);
+rec_QAM_seq = ofdm_demod(rec_OFDM_seq,N,Lcp,4);
 
 % Demodulate QAM sequence.
 rec_bit_seq = qam_demod(rec_QAM_seq,M,L,x);

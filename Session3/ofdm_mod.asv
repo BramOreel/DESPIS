@@ -64,10 +64,9 @@ fOFDM_frame = [zeros(1,size(QAM_matrix,2)) ; QAM_matrix ; zeros(1,size(QAM_matri
 OFDM_frame = ifft(fOFDM_frame);
 
 % Add in the cyclic prefix
-OFDM_frame = [ OFDM_frame(end-Lcp+1:end, :) ;OFDM_frame];
+OFDM_frame = [ (end-L+1:end, :)  ;OFDM_frame];
 
 % Serialize the set of OFDM frames
-
 OFDM_seq = OFDM_frame(:);
 
 end
