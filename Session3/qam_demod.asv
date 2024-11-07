@@ -23,19 +23,17 @@ binaryStrings = dec2bin(bit_seq'); % Convert to binary strings
 % newbinaryStrings = zeros(size(binaryStrings,1),streamLength/size(binaryStrings,1));
 % %add zeros so the string works
 
-% wntdlen = streamLength/size(binaryStrings,1);
-% newBin = zeros(size(binaryStrings,1),streamLength/size(binaryStrings,1));
-%  for i = 1:size(binaryStrings,1)
-%      actlen = size(binaryStrings(i,:),2);
-%      str = str2double(cellstr(binaryStrings(i,:)))';
+wntdlen = streamLength/size(binaryStrings,1);
+newBin = zeros(size(binaryStrings,1),streamLength/size(binaryStrings,1));
+ for i = 1:size(binaryStrings,1)
+     actlen = size(binaryStrings(i,:),2);
+    if actlen < wntdlen
+        newBin(i,:) = [zeros(1,wntdlen-actlen), binaryStrings(i,:)];
+
+
+    end
+ end
 % 
-%     if actlen < wntdlen
-%         newBin(i,:) = [zeros(1,wntdlen-actlen), binaryStrings(i,:)];
-% 
-% 
-%     end
-%  end
-% % 
  binaryArray = reshape(binaryStrings', [], 1); % Reshape to a single column
 
 

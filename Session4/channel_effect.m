@@ -13,6 +13,7 @@ Lcp = 4;
 % bit stream 
 
 bitSeq = randi([0, 1], 1,Nq)'; % Generate the bit sequence corresponding to 1 QAM symbol
+bitSeq = [0;0;1;1;1];
 bitStream = repmat(bitSeq,N/2-1,1); % Repeat this bit sequence to fill 1 OFDM frame
 
 % QAM modulation
@@ -29,11 +30,11 @@ h0 =1;
 h1=0;
 h2=0;
 h = [h0 h1 h2];
-rxOfdmStream = fftfilt(h,ofdmStream);
+%rxOfdmStream = fftfilt(h,ofdmStream);
 %rxOfdmStream = awgn();
 
 % OFDM demodulation
-rxQamStream = ofdm_demod(rxOfdmStream,N,Lcp,4);
+rxQamStream = ofdm_demod(ofdmStream,N,Lcp,4);
 
 % QAM constellation visualization
 scatterplot(rxQamStream);
