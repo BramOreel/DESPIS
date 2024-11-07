@@ -7,10 +7,10 @@ clear; close all; clc;
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
 
 % QAM modulation
-qamStream = bitStream;
+qamStream = qam_mod(bitStream, bitsPerPixel); 
 
 % OFDM modulation
-ofdmStream = qamStream;
+ofdmStream = ofdm_mod(qamStream, );
 
 % Channel
 rxOfdmStream = ofdmStream;
