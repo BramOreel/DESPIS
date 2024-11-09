@@ -16,7 +16,7 @@ for n= 1:N% Loop across values of N
         SNR = SNRs(SNRidx); % SNR
         
         % Generate a pseudo random binary sequence of a user defined length.
-        bit_seq = randi([0, 1], 1,L)' ;
+        bit_seq = randi([0, 1], L,1) ;
         
         % Modulate bit sequence.
         [QAM_seq, x] = qam_mod(bit_seq,M) ;
