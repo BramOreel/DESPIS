@@ -2,7 +2,6 @@
 %% Cleanup
 clear; close all; clc;
 
-
 % Convert BMP image to bitstream
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
 
@@ -21,7 +20,7 @@ for i = 1:length(ofdmStream)
 end
 h = ifft(H');
 
-rxOfdmStream = h.*ofdmStream;
+rxOfdmStream = conv(h,ofdmStream);
 
 % OFDM demodulation
 rxQamStream = ofdm_demod(rxOfdmStream, 16, 7,4);
