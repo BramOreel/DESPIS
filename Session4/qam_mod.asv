@@ -18,18 +18,16 @@ padLength = abs(mod(size(bit_seq,1),N) -N) ; % Number of bits to append such tha
 if(padLength == N)
     padLength = 0;
 end
-
-%display(length(bit_seq),'bitseq unpadded lenght ')
+display(length(bit_seq),'bitseq unpadded lenght ')
 bit_seq = [bit_seq; zeros(padLength,1)]; % Padded bit sequence
-%display(length(bit_seq),'bitseq padded length')
+display(length(bit_seq),'bitseq padded length')
 
 % Check that the bit sequence is correctly padded
 assert( mod(length(bit_seq),sum(N))==0,'Bit sequence should contain a number of bits that is a multiple of log2(M).')
 
 %% Call to qammod() to obtain the M-ary QAM symbols
-%display(length(bit2int(bit_seq,N)), 'length of integerseq')
+display(length(bit2int(bit_seq,N)), 'length of integer')
 display(M, 'M of qammod')
-
 QAM_seq = qammod(bit2int(bit_seq,N),M);
 x =       sum(abs(QAM_seq),"all")/size(QAM_seq,1);
 QAM_seq = QAM_seq./x;

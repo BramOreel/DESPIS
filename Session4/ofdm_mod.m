@@ -63,7 +63,7 @@ QAM_matrix = reshape(QAM_seq,N/2-1,[]);
 fOFDM_frame = [zeros(1,size(QAM_matrix,2)) ; QAM_matrix ; zeros(1,size(QAM_matrix,2)) ; conj(flipud(QAM_matrix)) ];
 
 % Apply the inverse Fourier transform (IFFT)
-OFDM_frame = ifft(fOFDM_frame);
+OFDM_frame = ifft(fOFDM_frame); 
 
 % Add in the cyclic prefix
 OFDM_frame = [ OFDM_frame(end-Lcp+1:end, :) ;OFDM_frame];

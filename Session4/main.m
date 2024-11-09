@@ -5,13 +5,13 @@ clear; close all; clc;
 % Convert BMP image to bitstream
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
 n = bitsPerPixel; % hier 8
-M = 2^n;
+M = 2^n; %2^8 = 256
 
 % QAM modulation
-qamStream = qam_mod(bitStream, M); %output (Mx1)
+qamStream = qam_mod(bitStream, M); %wat eruit komt is iets van: length(bitStream)/n (idg 19200)
 
 % OFDM modulation
-N = M; %aantal samples = M = aantal datastreams
+N = length(qamStream); %aantal substreams
 Lcp = 16;
 ofdmStream = ofdm_mod(qamStream, N, Lcp, 4 );
 
