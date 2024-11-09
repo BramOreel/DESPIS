@@ -15,38 +15,16 @@ function [ bit_seq ] = qam_demod( QAM_seq, M, streamLength,x)
 assert(sum(nextpow2(M)==log2(M))==length(M),'M is not a power of 2.')
 
 %% Demoludation by calling qamdemod
-QAM_seq = QAM_seq.*x;
+QAM_seq = QAM_seq./x;
 
 bit_seq = qamdemod(QAM_seq,M);
 
-binaryStrings = dec2bin(bit_seq'); % Convert to binary strings
-% newbinaryStrings = zeros(size(binaryStrings,1),streamLength/size(binaryStrings,1));
-% %add zeros so the string works
+binaryStrings = dec2bin(bit_seq',streamLength/size(bit_seq,1)); % Convert to binary strings
 
-% wntdlen = streamLength/size(binaryStrings,1);
-% newBin = zeros(size(binaryStrings,1),streamLength/size(binaryStrings,1));
-%  for i = 1:size(binaryStrings,1)
-%      actlen = size(binaryStrings(i,:),2);
-%      str = str2double(cellstr(binaryStrings(i,:)))';
-% 
-%     if actlen < wntdlen
-%         newBin(i,:) = [zeros(1,wntdlen-actlen), binaryStrings(i,:)];
-% 
-% 
-%     end
-%  end
-% % 
- binaryArray = reshape(binaryStrings', [], 1); % Reshape to a single column
-
-
-
+binaryArray = reshape(binaryStrings', [], 1); % Reshape to a single colum
 
 binaryArray = str2double(cellstr(binaryArray));
-
-
-
 
 bit_seq = binaryArray(1:streamLength);
 
 end
-

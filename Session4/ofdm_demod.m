@@ -1,12 +1,11 @@
-function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin)
+function [ data_seq, CHANNELS ] = ofdm_demod( OFDM_seq, N, Lcp, varargin )
 % OFDM demodulation
 %
 % INPUT:
 % OFDM_seq      T1X1            Time domain OFDM sequence of length T1 samples.
 % N             1X1             Total number of symbols in a single OFDM frame.
 % Lcp           1X1             Cyclic prefix length [samples] (you can ignore this until exercise 3.2.4)
-% varargin
-
+% varargin  
 % For Session 3 
 % empty
 %
@@ -81,22 +80,21 @@ elseif nargin == 10 % Session 7
     mu = varargin{5};
     alpha = varargin{6};
     type = varargin{7};
+else
+    equalization = 0;
 end
 
 %% Perform OFDM demodulation
 % Reshape the received OFDM sequence (serial to parallel conversion)
-OFDM_matrix = reshape(OFDM_seq,streamLength+Lcp,length(OFDM_seq)/(streamLength+Lcp)); %~k = k/N
-
-% OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]); % matrix wordt matrix van N+Lcp rijen en onbekend veel kolommen
+OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
 
 % Remove the cyclic prefix (you can ignore this until exercise 3.2.4)
 OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
 
 % Apply fft operation
-QAM_matrix = fft(OFDM_matrix);
+QAM_matrix = fft(OFDM_matrix,N);
 
-% Remove the redundant parts of QAM_matrix
-QAM_matrix = QAM_matrix(2:(N/2),:); 
+
 
 % Apply channel equalisation (you can ignore this until exercise 4.2.3)
 
@@ -114,10 +112,14 @@ the inverse of the channel frequency response (this should be given as an
 extra input variable to the function)
 %}
 if equalization
-    H = fft(channel);
-    CHANNEL = H(2:(N/2),:); %TODO?
-    QAM_matrix = CHANNEL\QAM_matrix;
+    CHANNEL = fft(channel,N)'; 
+    QAM_matrix = QAM_matrix./CHANNEL;
+    QAM_matrix(isinf(QAM_matrix)) = 0;
+    QAM_matrix(isnan(QAM_matrix)) = 0;
 end
+
+% Remove the redundant parts of QAM_matrix
+QAM_matrix = QAM_matrix(2:(N/2),:);   %this is the fft output and needs to be scaled with an inverse
 
 
 % Apply on-off mask (you can ignore this until exercise 4.3)
@@ -125,16 +127,5 @@ end
 
 % Supply streamLength number of symbols (you can ignore this until exercise 4.2)
 data_seq = QAM_matrix(:);
-
-epsilon = 10^-10;  % Smallest positive normalized number
-
-% Loop backwards through the array to find the last valid element
-idx = length(data_seq);  % Start at the last element
-while idx > 0 && (abs(real(data_seq(idx))) < epsilon && abs(imag(data_seq(idx))) < epsilon)
-    idx = idx - 1;  % Move backwards to the previous element
-end
-
-% Truncate the array up to the last valid element
-data_seq = data_seq(1:idx);
 
 end

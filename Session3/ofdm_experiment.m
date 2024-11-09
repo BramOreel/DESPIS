@@ -2,7 +2,7 @@
 clear; clc; close all;
 
 %% Parameters
-SNR = 30; % Signal-to-noise ratio [dB]
+SNR = 10000; % Signal-to-noise ratio [dB]
 M = 16; % QAM constellation size
 N = 16; % Number of symbols per OFDM frame, i.e., the DFT size
 L = 10000; % Binary sequence length [samples]
