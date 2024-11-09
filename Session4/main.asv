@@ -2,29 +2,38 @@
 %% Cleanup
 clear; close all; clc;
 
-
 % Convert BMP image to bitstream
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
 
 % QAM modulation
-qamStream = qam_mod(bitStream, bitsPerPixel); 
+qamStream = qam_mod(bitStream, 2^(bitsPerPixel)); %output (M = 2^(bitsPerPixel) x1)
 
 % OFDM modulation
 ofdmStream = ofdm_mod(qamStream, 16, 7,4 );
 
 % Channel
 SNR = 10^10;
-syms z;
-Hz = 1/z;
+H = [];
+a = 2;
 for i = 1:length(ofdmStream)
-    H(i) = subs(Hz, );
+    H(i) = 1/(a*i); %channel order = L = 2
 end
 
 h = ifft(H');
-rxOfdmStream = h.*ofdmStream;
+
+%{
+figure
+stem(1:length(h),h)
+title('h')
+%}
+
+
+rxOfdmStream = conv(h,ofdmStream); %signaal wordt vervormd door kanaal
 
 % OFDM demodulation
-rxQamStream = ofdm_demod(rxOfdmStream, 16, 7,4);
+% met channel equalizer
+%function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin,streamLength,channel,equalization )
+rxQamStream = ofdm_demod(OFDM_seq,N,Lcp,varargin,length(qamStream),h,1,4);
 
 % QAM demodulation
 rxBitStream = qam_demod(rxQamStream, bitsPerPixel, length(bitStream),4);

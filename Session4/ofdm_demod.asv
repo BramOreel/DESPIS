@@ -1,4 +1,4 @@
-function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin)
+function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,streamLength,channel,equalization,varargin)
 % OFDM demodulation
 %
 % INPUT:
@@ -117,6 +117,8 @@ if equalization
     H = fft(channel);
     CHANNEL = H(2:(N/2),:); %TODO?
     QAM_matrix = CHANNEL\QAM_matrix;
+else
+    QAM_matrix= 
 end
 
 
