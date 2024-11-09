@@ -88,6 +88,7 @@ end
 % Reshape the received OFDM sequence (serial to parallel conversion)
 OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
 
+
 % Remove the cyclic prefix (you can ignore this until exercise 3.2.4)
 OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
 
@@ -98,19 +99,6 @@ QAM_matrix = fft(OFDM_matrix,N);
 
 % Apply channel equalisation (you can ignore this until exercise 4.2.3)
 
-% streamLength  1X1             Length of QAM sequence after call to qammod [samples].
-% channel       T2X1            Impulse response of channel.
-% ON_OFF_mask   (N/2-1)X1       Mask denoting the bins to use in range (X_1...X_(N/2-1)) with a 1 denothing
-%                               that a bin should be used and a 0 denoting that a bin should not be used.
-%                               (you can ignore this until exercise 4.3)
-% equalization  1X1             If 1 channel equalization is performed, if 0 no
-%                               channel equalization is performed.
-
-%{
-add a channel equalizer by scaling the components of the FFT output with
-the inverse of the channel frequency response (this should be given as an
-extra input variable to the function)
-%}
 if equalization
     CHANNEL = fft(channel,N)'; 
     QAM_matrix = QAM_matrix./CHANNEL;

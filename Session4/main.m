@@ -20,6 +20,7 @@ scatterplot(qamStream);
 ofdmStream = ofdm_mod(qamStream, N, Lcp, 4 );
 
 
+
 % Channel
 L_channel = 6;
 %% Channel option 1
@@ -37,7 +38,6 @@ rxOfdmStream = awgn(rxOfdmStream,SNR);
 %function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin, streamLength,channel,equalization )
 rxQamStream = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,0,1);
 scatterplot(rxQamStream);
-
 
 % QAM demodulation
 rxBitStream = qam_demod(rxQamStream,M, length(bitStream),x);
