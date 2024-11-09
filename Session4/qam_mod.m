@@ -28,8 +28,6 @@ assert( mod(length(bit_seq),sum(N))==0,'Bit sequence should contain a number of 
 
 %% Call to qammod() to obtain the M-ary QAM symbols
 %display(length(bit2int(bit_seq,N)), 'length of integerseq')
-display(M, 'M of qammod')
-
 QAM_seq = qammod(bit2int(bit_seq,N),M);
 x =       sum(abs(QAM_seq),"all")/size(QAM_seq,1);
 QAM_seq = QAM_seq./x;

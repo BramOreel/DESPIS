@@ -86,11 +86,20 @@ end
 %% Perform OFDM demodulation
 % Reshape the received OFDM sequence (serial to parallel conversion)
 
-display(length(OFDM_seq))
-streamLength+Lcp
-length(OFDM_seq)/(streamLength+Lcp)
+%display(length(OFDM_seq),'length conv(h,ofdmStream)') %= 61471
+%display(streamLength+Lcp, 'streamLength+Lcp') = 272
+%display(length(OFDM_seq)/(streamLength+Lcp),'length(OFDM_seq)/(streamLength+Lcp)')
 
-OFDM_matrix = reshape(OFDM_seq,streamLength+Lcp,length(OFDM_seq)/(streamLength+Lcp)); %~k = k/N
+padLength = abs(mod(size(OFDM_seq,1),N+Lcp) -(N+Lcp));
+display(padLength,'padlength')
+
+%display(size(OFDM_seq), 'length OFDM_seq before padding')
+
+OFDM_seq = [OFDM_seq; zeros(padLength,1)];
+
+%display(size(OFDM_seq), 'length OFDM_seq after padding')
+
+OFDM_matrix = reshape(OFDM_seq,N+Lcp,length(OFDM_seq)/(N+Lcp)); 
 
 % OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]); % matrix wordt matrix van N+Lcp rijen en onbekend veel kolommen
 
