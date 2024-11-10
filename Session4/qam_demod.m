@@ -18,9 +18,9 @@ assert(sum(nextpow2(M)==log2(M))==length(M),'M is not a power of 2.')
 QAM_seq = QAM_seq.*x;
 
 bit_seq = qamdemod(QAM_seq,M);
-display(bit_seq,'bit_seq')
 
-binaryStrings = dec2bin(bit_seq',streamLength/size(bit_seq,1)); % Convert to binary strings
+%binaryStrings = dec2bin(bit_seq',streamLength/size(bit_seq,1)); % Convert to binary strings
+binaryStrings = dec2bin(bit_seq,streamLength/size(bit_seq',1)); % Convert to binary strings
 
 binaryArray = reshape(binaryStrings', [], 1); % Reshape to a single colum
 

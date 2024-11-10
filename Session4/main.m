@@ -10,7 +10,7 @@ Nq = bitsPerPixel; % hier 8
 M = 2^Nq; % QAM constellation size
 N = 2048; % Total number of symbols in a single OFDM frame, i.e., the DFT size
 Lcp = 300;
-SNR = 10000;
+SNR = 10000000;
 
 % QAM modulation
 [qamStream,x] = qam_mod(bitStream, M);
@@ -25,8 +25,20 @@ ofdmStream = ofdm_mod(qamStream, N, Lcp, 4 );
 %display(size(ofdmStream),'ofdstream')
 
 % Channel
-h=[1; 0.25; 0.7; 0.012; 0.0244; 0.1];
+h = load('channel_session4.mat').h';
+h = [h'];
 
+figure
+plot([1:length(h)],h)
+title('h')
+%{
+fs = 16000;
+Nh = length(h);
+segmentLength = length(h)/30;
+noverlap = segmentLength/2;
+[PSD_Welch_input,Fin] = pwelch(h,segmentLength,noverlap,1/fs,fs);
+
+%}
 %{
 for i =1 : length(ofdmStream)
     h(i) = 1/i;
@@ -41,7 +53,9 @@ rxOfdmStream = fftfilt(h,ofdmStream);
 % OFDM demodulation
 
 %function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin, streamLength,channel,MASK,equalization )
-[ rxQamStream, CHANNELS ] = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,0,0);
+[ rxQamStream, CHANNELS ] = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,0,1);
+
+h_hat = ifft(CHANNELS)
 
 
 scatterplot(rxQamStream);

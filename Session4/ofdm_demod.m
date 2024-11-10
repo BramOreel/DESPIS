@@ -103,7 +103,6 @@ QAM_matrix = fft(OFDM_matrix,N);
 % Apply channel equalisation (you can ignore this until exercise 4.2.3)
 CHANNELS = 1;
 if equalization
-
     padLength = abs(mod(size(channel,1),N+Lcp) - (N+Lcp)) ;
     if(padLength == N+Lcp)
         padLength = 0;
@@ -135,4 +134,16 @@ QAM_matrix = QAM_matrix(2:(N/2),:);   %this is the fft output and needs to be sc
 
 % Supply streamLength number of symbols (you can ignore this until exercise 4.2)
 data_seq = QAM_matrix(1:streamLength);
+
+
+epsilon = 10^-10;  % Smallest positive normalized number
+
+% Loop backwards through the array to find the last valid element
+idx = length(data_seq);  % Start at the last element
+while idx > 0 && (abs(real(data_seq(idx))) < epsilon && abs(imag(data_seq(idx))) < epsilon)
+    idx = idx - 1;  % Move backwards to the previous element
+end
+
+% Truncate the array up to the last valid element
+data_seq = data_seq(1:idx);
 end
