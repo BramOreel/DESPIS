@@ -1,4 +1,4 @@
-function [ data_seq, CHANNELS ] = ofdm_demod( OFDM_seq, N, Lcp, varargin )
+function [ data_seq, CHANNELS ] = ofdm_demod( OFDM_seq, N, Lcp, varargin)
 % OFDM demodulation
 %
 % INPUT:
@@ -134,5 +134,5 @@ QAM_matrix = QAM_matrix(2:(N/2),:);   %this is the fft output and needs to be sc
 % QAM_matrix = ;
 
 % Supply streamLength number of symbols (you can ignore this until exercise 4.2)
-data_seq = QAM_matrix(streamLength);
+data_seq = QAM_matrix(1:streamLength);
 end

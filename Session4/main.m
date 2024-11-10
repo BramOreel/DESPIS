@@ -16,53 +16,32 @@ SNR = 1000000000000000000;
 [qamStream,x] = qam_mod(bitStream, M);
 
 
-scatterplot(qamStream);
-title('after QAM-modulation')
+scatterplot(qamStream)
+title('after QAM_mod')
 
 
 % OFDM modulation
 ofdmStream = ofdm_mod(qamStream, N, Lcp, 4 );
+%display(size(ofdmStream),'ofdstream')
 
 % Channel
-L_channel = length(ofdmStream);
-
-%% Channel option 1
-%{
-h = [];
-
-%impuls respons is van lengte ofdmStream
-
-for i = 1:7
-    h = [h; i];
+h=[];
+for i =1 : length(ofdmStream)
+    h(i) = 1/i;
 end
 
-%}
 
-
-h = [1; 0.25; 0.3; 0.9];
-
-%{
-
-min_val = 0;
-max_val = 1;
-h = [1 randn(1,L_channel-1)];
-%h = load('channel_session4.mat').h';
-%h = [h];
-%h = [1 5 4 3 2 4];
-
-%}
-
-rxOfdmStream = conv(h,ofdmStream);
+rxOfdmStream = fftfilt(h,ofdmStream);
 %rxOfdmStream = awgn(rxOfdmStream,SNR);
 
 % OFDM demodulation
-% met channel equalizer
 
-%function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin, streamLength,channel,equalization )
+%function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin, streamLength,channel,MASK,equalization )
 [ rxQamStream, CHANNELS ] = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,0,0);
 
-title('after OFDM-modulation')
+
 scatterplot(rxQamStream);
+title('after OFDM-modulation')
 
 % QAM demodulation
 rxBitStream = qam_demod(rxQamStream,M, length(bitStream),x);
