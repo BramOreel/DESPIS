@@ -10,7 +10,7 @@ Nq = bitsPerPixel; % hier 8
 M = 2^Nq; % QAM constellation size
 N = 2048; % Total number of symbols in a single OFDM frame, i.e., the DFT size
 Lcp = 300;
-SNR = 1000000000000000000;
+SNR = 10000;
 
 % QAM modulation
 [qamStream,x] = qam_mod(bitStream, M);
@@ -25,10 +25,14 @@ ofdmStream = ofdm_mod(qamStream, N, Lcp, 4 );
 %display(size(ofdmStream),'ofdstream')
 
 % Channel
-h=[];
+h=[1; 0.25; 0.7; 0.012; 0.0244; 0.1];
+
+%{
 for i =1 : length(ofdmStream)
     h(i) = 1/i;
 end
+
+%}
 
 
 rxOfdmStream = fftfilt(h,ofdmStream);
