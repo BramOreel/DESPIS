@@ -88,7 +88,6 @@ V=[]; %lengte px1
 %Selecteer frequenties met voldoende hoge vermogen = 1; frequenties met slechte vermogen = 0; 
 for i=1:length(S)
     if S(i) >= PSD_threshold
-        display('ok')
         V = [V 1];
     else
         V = [V 0];

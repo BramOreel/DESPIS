@@ -115,7 +115,7 @@ if equalization
         hk = hk(1:Lcp+1);
         nul = zeros(N-(Lcp+1),1);
         hk = [hk; nul];
-        CHANNEL = fft(hk);
+        CHANNEL = fft(hk); %
         CHANNELS = [CHANNELS CHANNEL];
         QAM_matrix(:,i) = QAM_matrix(:,i)./CHANNEL; %NxP
         QAM_matrix(isinf(QAM_matrix)) = 0;
