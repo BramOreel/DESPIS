@@ -28,7 +28,7 @@ min_val = 0;
 max_val = 1;
 %h = [1 randn(1,L_channel-1)];
 h = load('channel_session4.mat').h';
-h = [h];
+h = [1 h];
 %h = [1 5 4 3 2 4];
 
 rxOfdmStream = fftfilt(h,ofdmStream);
