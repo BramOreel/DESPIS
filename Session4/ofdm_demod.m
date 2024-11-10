@@ -86,8 +86,13 @@ end
 
 %% Perform OFDM demodulation
 % Reshape the received OFDM sequence (serial to parallel conversion)
-OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
 
+padLength = abs(mod(size(OFDM_seq,1),N+Lcp) - (N+Lcp)) ;
+    if(padLength == N+Lcp)
+        padLength = 0;
+    end
+    OFDM_seq = [OFDM_seq; zeros(padLength,1)];
+OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
 
 % Remove the cyclic prefix (you can ignore this until exercise 3.2.4)
 OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
@@ -95,25 +100,39 @@ OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
 % Apply fft operation
 QAM_matrix = fft(OFDM_matrix,N);
 
-
-
 % Apply channel equalisation (you can ignore this until exercise 4.2.3)
-
+CHANNELS = 1;
 if equalization
-    CHANNEL = fft(channel,N)'; 
-    QAM_matrix = QAM_matrix./CHANNEL;
-    QAM_matrix(isinf(QAM_matrix)) = 0;
-    QAM_matrix(isnan(QAM_matrix)) = 0;
+
+    padLength = abs(mod(size(channel,1),N+Lcp) - (N+Lcp)) ;
+    if(padLength == N+Lcp)
+        padLength = 0;
+    end
+    h = [channel; zeros(padLength,1)];
+    h = reshape(h,N+Lcp,[]);
+    CHANNELS = [];
+    for i = 1: length(h)/(N+Lcp)
+        hk = h(:,i);
+        hk = hk(1:Lcp+1);
+        nul = zeros(N-(Lcp+1),1);
+        hk = [hk; nul];
+        CHANNEL = fft(hk); %
+        CHANNELS = [CHANNELS CHANNEL];
+        QAM_matrix(:,i) = QAM_matrix(:,i)./CHANNEL;
+        QAM_matrix(isinf(QAM_matrix)) = 0;
+        QAM_matrix(isnan(QAM_matrix)) = 0;
+    end
+    CHANNELS = CHANNELS(2:(N/2),:);
 end
 
 % Remove the redundant parts of QAM_matrix
 QAM_matrix = QAM_matrix(2:(N/2),:);   %this is the fft output and needs to be scaled with an inverse
 
 
+
 % Apply on-off mask (you can ignore this until exercise 4.3)
 % QAM_matrix = ;
 
 % Supply streamLength number of symbols (you can ignore this until exercise 4.2)
-data_seq = QAM_matrix(:);
-
+data_seq = QAM_matrix(streamLength);
 end

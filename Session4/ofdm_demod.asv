@@ -86,6 +86,11 @@ end
 
 %% Perform OFDM demodulation
 % Reshape the received OFDM sequence (serial to parallel conversion)
+
+padLength = abs(mod(size(channel,1),N+Lcp) - (N+Lcp)) ;
+    if(padLength == N+Lcp)
+        padLength = 0;
+    end
 OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
 
 % Remove the cyclic prefix (you can ignore this until exercise 3.2.4)
@@ -94,49 +99,39 @@ OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
 % Apply fft operation
 QAM_matrix = fft(OFDM_matrix,N);
 
-
-
 % Apply channel equalisation (you can ignore this until exercise 4.2.3)
 
-% streamLength  1X1             Length of QAM sequence after call to qammod [samples].
-% channel       T2X1            Impulse response of channel.
-% ON_OFF_mask   (N/2-1)X1       Mask denoting the bins to use in range (X_1...X_(N/2-1)) with a 1 denothing
-%                               that a bin should be used and a 0 denoting that a bin should not be used.
-%                               (you can ignore this until exercise 4.3)
-% equalization  1X1             If 1 channel equalization is performed, if 0 no
-%                               channel equalization is performed.
-
-%{
-add a channel equalizer by scaling the components of the FFT output with
-the inverse of the channel frequency response (this should be given as an
-extra input variable to the function)
-%}
 if equalization
-    CHANNEL = fft(channel,N/2); 
-    QAM_matrix = QAM_matrix./CHANNEL';
-    QAM_matrix(isinf(QAM_matrix)) = 0;
-    QAM_matrix(isnan(QAM_matrix)) = 0;
+
+    padLength = abs(mod(size(channel,1),N+Lcp) - (N+Lcp)) ;
+    if(padLength == N+Lcp)
+        padLength = 0;
+    end
+    h = [channel; zeros(padLength,1)];
+    h = reshape(h,N+Lcp,[]);
+    CHANNELS = [];
+    for i = 1: length(h)/(N+Lcp)
+        hk = h(:,i);
+        hk = hk(1:Lcp+1);
+        nul = zeros(N-(Lcp+1),1);
+        hk = [hk; nul];
+        CHANNEL = fft(hk); %
+        CHANNELS = [CHANNELS CHANNEL];
+        QAM_matrix(:,i) = QAM_matrix(:,i)./CHANNEL;
+        QAM_matrix(isinf(QAM_matrix)) = 0;
+        QAM_matrix(isnan(QAM_matrix)) = 0;
+    end
+    
 end
 
 % Remove the redundant parts of QAM_matrix
 QAM_matrix = QAM_matrix(2:(N/2),:);   %this is the fft output and needs to be scaled with an inverse
+CHANNELS = CHANNELS(2:(N/2),:);
 
 
 % Apply on-off mask (you can ignore this until exercise 4.3)
 % QAM_matrix = ;
 
 % Supply streamLength number of symbols (you can ignore this until exercise 4.2)
-data_seq = QAM_matrix(:);
-
-% epsilon = 10^-10;  % Smallest positive normalized number
-% 
-% % Loop backwards through the array to find the last valid element
-% idx = length(data_seq);  % Start at the last element
-% while idx > 0 && (abs(real(data_seq(idx))) < epsilon && abs(imag(data_seq(idx))) < epsilon)
-%     idx = idx - 1;  % Move backwards to the previous element
-% end
-% 
-% % Truncate the array up to the last valid element
-% data_seq = data_seq(1:idx);
-
+data_seq = QAM_matrix(streamLength);
 end

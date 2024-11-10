@@ -53,35 +53,36 @@ end
 % Put the QAM symbols into matrix of N/2-1 rows
 
 %display(length(QAM_seq), 'length QAM_seq before padding')
-padLength = abs(mod(size(QAM_seq,1),(N/2)-1) -((N/2)-1)) ; % Number of bits to append such that it can be divided nicely into the M-ary QAM format
+padLength = abs(mod(size(QAM_seq,1),(N/2)-1) -((N/2)-1)) ;
 if(padLength == N/2-1)
     padLength = 0;
 end
 QAM_seq = [QAM_seq; zeros(padLength,1)];
 
 %display(length(QAM_seq), 'length QAM_seq after padding')
-
-QAM_matrix = reshape(QAM_seq,N/2-1,[]); %15x1280 met N = 32, N/2-1 = 15
+% size: N/2 x P
+QAM_matrix = reshape(QAM_seq,N/2-1,[]);
 
 
 % Construct the OFDM frames according to Figure 2 in session 3
 fOFDM_frame = [zeros(1,size(QAM_matrix,2)) ; QAM_matrix ; zeros(1,size(QAM_matrix,2)) ; conj(flipud(QAM_matrix)) ];
-%size = 32x1280
+%size = NxP
 %eerste rij nullen voor DC-componenten
 %symmetrisch om reële tijdsignaal te bekomen
 
 
 % Apply the inverse Fourier transform (IFFT)
-OFDM_frame = ifft(fOFDM_frame); %size = 32x1280
+OFDM_frame = ifft(fOFDM_frame);
 
 % Add in the cyclic prefix
-OFDM_frame = [ OFDM_frame(end-Lcp+1:end, :) ;OFDM_frame]; %size = (32+Lcp)x1280 = 48x1280
-%display(size(OFDM_frame),'OFDM_frame with Lcp')
+% (N+L)xP
+OFDM_frame = [ OFDM_frame(end-Lcp+1:end, :) ;OFDM_frame];
+% display(size(OFDM_frame),'OFDM_frame with Lcp')
 
 % Serialize the set of OFDM frames
 
 OFDM_seq = OFDM_frame(:);
-%display(length(OFDM_seq),'length(OFDM_seq)') % 48x1280 = 61440
+%display(length(OFDM_seq),'length(OFDM_seq)') % (N+L)*P
 
 end
 
