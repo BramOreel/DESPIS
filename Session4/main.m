@@ -28,8 +28,30 @@ ofdmStream = ofdm_mod(qamStream, N, Lcp, 4 );
 h = load('channel_session4.mat').h';
 h = h';
 
+%%
+rxOfdmStream = fftfilt(h,ofdmStream);
+rxOfdmStream = awgn(rxOfdmStream,SNR);
+
+% OFDM demodulation
+
+%function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin, streamLength,channel,MASK,equalization )
+[ rxQamStream, CHANNELS ] = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,MASK,1);
+
+scatterplot(rxQamStream);
+title('after OFDM-modulation')
 
 %%
+
+% QAM demodulation
+rxBitStream = qam_demod(rxQamStream,M, length(bitStream),x);
+
+% Compute BER
+berTransmission = ber(bitStream,rxBitStream);
+
+% Construct image from bitstream
+imageRx = bitstreamtoimage(rxBitStream, imageSize, bitsPerPixel);
+%% OEF 4.3
+
 figure
 plot(1:length(h),h)
 title('h')
@@ -44,7 +66,7 @@ end
 
 h = [h; zeros(padLength,1)];
 
-[s1,f1,t1] = spectrogram(h, N); % Generated white noise
+[s1,f1,t1] = spectrogram(h, N);
 PSD_h = sum(abs(s1).^2,2)*fs;
 y = pow2db(PSD_h);
 
@@ -55,30 +77,12 @@ xlabel('Frequency (kHz)');
 ylabel('Power/frequency (dB/Hz)')
 title('|H|^2')
 
-
-
-
-%%
-rxOfdmStream = fftfilt(h,ofdmStream);
-rxOfdmStream = awgn(rxOfdmStream,SNR);
-
-% OFDM demodulation
-
-%function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin, streamLength,channel,MASK,equalization )
-[ rxQamStream, CHANNELS ] = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,MASK,1);
-
-scatterplot(rxQamStream);
-title('after OFDM-modulation')
-
-%% OEF 4.3
-
 p = length(ofdmStream)/(N+Lcp); % Aantal OFDM-subcarriers
 fs = 16000; % Sampling frequentie
 PSD_threshold = 0.1*max(y);
 
-% Kanaalrespons van elke subcarrier
-% vermogen per kanaal
-
+% Vermogen per kanaal
+CHANNELS = reshape(CHANNELS,N,[]);
 S = [];
 for i =1:size(CHANNELS,2)
     S(i) = abs(CHANNELS(i))^2;
@@ -91,9 +95,12 @@ for i=1:length(S)
         display('ok')
         V = [V 1];
     else
+        display('nok')
         V = [V 0];
     end
 end
+
+%{
 
 % Data simuleren en ON-OFF Bit Loading toepassen
 
@@ -116,17 +123,9 @@ rxOfdmStream2 = awgn(rxOfdmStream2,SNR);
 
 [ rxQamStream2, CHANNELS2 ] = ofdm_demod(rxOfdmStream2,N,Lcp,length(qamStream2),h,data(:,1),1);
 
+%}
 
 %%
-
-% QAM demodulation
-rxBitStream = qam_demod(rxQamStream,M, length(bitStream),x);
-
-% Compute BER
-berTransmission = ber(bitStream,rxBitStream);
-
-% Construct image from bitstream
-imageRx = bitstreamtoimage(rxBitStream, imageSize, bitsPerPixel);
 
 % Plot images
 figure

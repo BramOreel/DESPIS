@@ -102,7 +102,31 @@ QAM_matrix = fft(OFDM_matrix,N);
 
 % Apply channel equalisation (you can ignore this until exercise 4.2.3)
 CHANNELS = 1;
+
 if equalization
+    padLength = abs(mod(size(channel,1),N)-(N)) ;
+    if(padLength == N)
+        padLength = 0;
+    end
+    channel = [channel; zeros(padLength,1)];
+    
+    CHANNEL = fft(channel)
+    CHANNEL = fft(channel,length(channel));
+    padLength = abs(mod(size(CHANNEL,1),N)-(N)) ;
+    if(padLength == N)
+        padLength = 0;
+    end
+    CHANNEL = [CHANNEL; zeros(padLength,1)];
+    CHANNELS = reshape(CHANNEL,N,[]);
+    for i = 1: size(QAM_matrix,2)
+        QAM_matrix(:,1) = QAM_matrix(:,1)./CHANNELS(:,1);
+    end
+    QAM_matrix(isinf(QAM_matrix)) = 0;
+    QAM_matrix(isnan(QAM_matrix)) = 0; %NxP
+end
+   %{
+
+    
     padLength = abs(mod(size(channel,1),N+Lcp) - (N+Lcp)) ;
     if(padLength == N+Lcp)
         padLength = 0;
@@ -123,6 +147,8 @@ if equalization
     end
     CHANNELS = CHANNELS(2:(N/2),:);
 end
+    
+   %}
 
 % Remove the redundant parts of QAM_matrix (%N/2-1xP)
 QAM_matrix = QAM_matrix(2:(N/2),:);   %this is the fft output and needs to be scaled with an inverse
