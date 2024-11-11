@@ -82,7 +82,7 @@ elseif nargin == 10 % Session 7
     type = varargin{7};
 else
     equalization = 0;
-    ON_OFF_mask = ones(1,N);
+    ON_OFF_mask = ones(1,N/2-1);
 end
 
 %% Perform OFDM demodulation
@@ -108,27 +108,30 @@ if equalization
 end
 
 
-QAM_matrix = QAM_matrix.*ON_OFF_mask;
-
 % Remove the redundant parts of QAM_matrix
-QAM_matrix = QAM_matrix(2:(N/2),:);   %this is the fft output and needs to be scaled with an inverse
+QAM_matrix = QAM_matrix(2:(N/2),:);   
+
+
+%remove rows that are zero of the QAM matrix we know which rows these are
+%because of the freq mask ON_OFF_mask
+QAM_matrix_red = [];
+for k = 1:length(ON_OFF_mask)
+    if ON_OFF_mask(k) == 1
+        QAM_matrix_red = [QAM_matrix_red; QAM_matrix(k,:)];
+    end
+end
+
 
 
 % Apply on-off mask (you can ignore this until exercise 4.3)
-% QAM_matrix = ;
+ QAM_matrix = QAM_matrix_red;
 
 % Supply streamLength number of symbols (you can ignore this until exercise 4.2)
+%We need to truncate the array so that the dimensions fit again
+
+
 data_seq = QAM_matrix(:);
+data_seq = data_seq(1:streamLength);
 
-epsilon = 10^-10;  % Smallest positive normalized number
-
-% Loop backwards through the array to find the last valid element
-idx = length(data_seq);  % Start at the last element
-while idx > 0 && (abs(real(data_seq(idx))) < epsilon && abs(imag(data_seq(idx))) < epsilon)
-    idx = idx - 1;  % Move backwards to the previous element
-end
-
-% Truncate the array up to the last valid element
-data_seq = data_seq(1:idx);
 
 end

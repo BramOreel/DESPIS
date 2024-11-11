@@ -10,27 +10,28 @@ Nq = 4;
 M = 2^Nq; % QAM constellation size
 N = 2048; % Total number of symbols in a single OFDM frame, i.e., the DFT size
 Lcp = 300;
-SNR = 100;
-
-
+SNR = 19;
+BWusage = 60;
+h = load('channel_session4.mat').h';
 
 
 
 
 
 %On-off bit loading
-h = load('channel_session4.mat').h';
-H = fft(h, N);       % Channel frequency response
+H = fft(h, N/2-1);       % Channel frequency response
 H_abs = abs(H);
 [H_sorted, idx_sorted] = sort(H_abs, 'descend');
 
-BWusage = 50;                                % Percentage of frequency bins to use
-num_bins = floor(BWusage / 100 * N);         % Number of bins to use
-selected_bins = idx_sorted(1:num_bins);      % Indices of selected bins
+                                % Percentage of frequency bins to use
+num_bins = floor(BWusage / 100 * N/2-1);         % Number of bins to use
+selected_bins = idx_sorted(1:num_bins);      % Indices of selected bins, these bins have a good SNR
 
 % Create a frequency mask to use only the selected bins
-frequency_mask = zeros(N, 1);
+frequency_mask = zeros(N/2-1, 1);
 frequency_mask(selected_bins) = 1;
+
+ones_freq_mask = ones(1,N/2-1);
 
 
 
@@ -42,7 +43,7 @@ scatterplot(qamStream);
 
 % OFDM modulation
 %frequency_mask
-ofdmStream = ofdm_mod(qamStream, N, Lcp);
+ofdmStream = ofdm_mod(qamStream, N, Lcp,frequency_mask);
 
 
 
@@ -59,11 +60,11 @@ max_val = 1;
 %h = [1 5 4 3 2 4];
 
 rxOfdmStream = fftfilt(h,ofdmStream);
-rxOfdmStream = awgn(rxOfdmStream,SNR);
+rxOfdmStream = awgn(rxOfdmStream,SNR,"measured");
 % OFDM demodulation
 % met channel equalizer
 %function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin, streamLength,channel,equalization )
-rxQamStream = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,ones(N,1),1);
+rxQamStream = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,frequency_mask,1);
 scatterplot(rxQamStream);
 
 % QAM demodulation

@@ -47,28 +47,74 @@ elseif nargin == 6
     trainblock = varargin{2};
     ON_OFF_mask = varargin{3};
 else
-    ON_OFF_mask = ones(N,1);
+    ON_OFF_mask = ones(1,N/2-1);
 end
 
 %% Construct the OFDM sequence
 
 % Put the QAM symbols into matrix of N/2-1 rows
 
+
+%Map the QAM symbols onto frequencies which are allowed by the mask. This
+%means that our padlength is not effective anymore i think. We can however
+%extract the number of allowed carrier frequencies and calculate a new
+%padding
+
+
+%Final dimensions are N/2-1 * div_pad
+%input is length x
+%the number of columns will not change, only number of rows
+carriers_used = sum(ON_OFF_mask,"all");
+mod_pad = mod(size(QAM_seq,1),carriers_used);
+div_pad = floor(size(QAM_seq,1)/carriers_used);
+if mod_pad ~=0
+    div_pad = div_pad + 1; %numbers of rows in the matrix in think
+end
+
+
+
+
+
+
 %display(length(QAM_seq), 'length QAM_seq before padding')
-padLength = abs(mod(size(QAM_seq,1),(N/2)-1) -((N/2)-1)) ; % Number of bits to append such that it can be divided nicely into the M-ary QAM format
-if(padLength == N/2-1)
+padLength = abs(mod(size(QAM_seq,1),carriers_used) - carriers_used) ; % Number of bits to append such that it can be divided nicely into the M-ary QAM format
+if(padLength == carriers_used)
     padLength = 0;
 end
 QAM_seq = [QAM_seq; zeros(padLength,1)];
 
-%display(length(QAM_seq), 'length QAM_seq after padding')
+%Construct the QAM matrix with the knowledge that zeros have to be inserted
+QAM_matrixON = reshape(QAM_seq,carriers_used,[]);
+for k = 1:length(ON_OFF_mask)
+    if ON_OFF_mask(k) == 0
+        if(k == 1)
+            QAM_matrixON = [zeros(1,size(QAM_matrixON,2)); QAM_matrixON];
+        
+        elseif(k==2)
+            QAM_matrixON = [QAM_matrixON(1,:); zeros(1,size(QAM_matrixON,2)); QAM_matrixON(2:end,:)];
+        
+        elseif(k == length(ON_OFF_mask) -1)
+            QAM_matrixON = [QAM_matrixON(1:k-2,:); zeros(1,size(QAM_matrixON,2)); QAM_matrixON(k-1,:)]; 
+        
+        elseif(k == length(ON_OFF_mask))
+            QAM_matrixON = [QAM_matrixON;zeros(1,size(QAM_matrixON,2))];
+        
+        else
+            QAM_matrixON = [QAM_matrixON(1:k-1,:); zeros(1,size(QAM_matrixON,2)); QAM_matrixON(k:end,:)];  %voor de tweede index wil je de eerste rij saven en de rest erna kopieren
 
-QAM_matrix = reshape(QAM_seq,N/2-1,[]); %15x1280 met N = 32, N/2-1 = 15
+        end
+    end
+end
+
+
+
+
+
+QAM_matrix = QAM_matrixON;%reshape(QAM_seq,N/2-1,[]); 
 
 
 % Construct the OFDM frames according to Figure 2 in session 3
 fOFDM_frame = [zeros(1,size(QAM_matrix,2)) ; QAM_matrix ; zeros(1,size(QAM_matrix,2)) ; conj(flipud(QAM_matrix)) ];
-fOFDM_frame = fOFDM_frame.*ON_OFF_mask;
 %eerste rij nullen voor DC-componenten
 %symmetrisch om reële tijdsignaal te bekomen
 
