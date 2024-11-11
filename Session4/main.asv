@@ -56,43 +56,42 @@ figure
 plot(1:length(h),h)
 title('h')
 
-fs = 16000;
-Ntot = length(h);
+fs = 16000;% Sampling frequentie van h
 
-padLength = abs(mod(size(h,1),N) - N) ;
-if(padLength == N)
-    padLength = 0;
-end
 
-h = [h; zeros(padLength,1)];
+sh = N/2-1; %aantal samples van h
+s1 = fft(h, sh); % H, fft pads h already to length N
 
-[s1,f1,t1] = spectrogram(h, N);
-PSD_h = sum(abs(s1).^2,2)*fs;
-y = pow2db(PSD_h);
+PSD_h = sum(abs(s1).^2,2)*fs/sh;
+y = pow2db(PSD_h); %vermogen in dB
 
 figure;
-subplot(2,1,1)
-plot(f1,y);
-xlabel('Frequency (kHz)');
-ylabel('Power/frequency (dB/Hz)')
+subplot(1,1,1)
+plot(1:sh,y);
+xlabel('sample');
+ylabel('Normalized Power/frequency (dB/Hz)')
 title('|H|^2')
 
-p = length(ofdmStream)/(N+Lcp); % Aantal OFDM-subcarriers
-fs = 16000; % Sampling frequentie
+%p = length(ofdmStream)/(N+Lcp); %aantal kanalen
+fs = 16000; 
 PSD_threshold = 0.5*max(y);
 
-f1 = f1*10^3;
-n_off=[];
-c = length(f1)/fs;
-for i = 1: length(f1)
-    if y(i) <= PSD_threshold
-        ni = floor(f1(i)*c);
+%masker opstellen
+n_off=[]; %alle samples waar masker 0 moet zijn
+c = fs/N; % fs/N = one frequency bin
+
+%samples zoeken waarbij vermogen laag is
+for i = 1:sh
+    if y(i) <= PSD_threshold %vermogen die lager is dan de treshold
+        ni = floor(i*c); %frequentie bin: k*fs/N
         a = length(n_off);
         if a ~= 0 
             %geen beginwaarde
-            if n_off(a) == ni | ni == 0 %geen DC sample
+            if n_off(a) == ni | ni == 0
                 n_off = n_off;
+
             else
+                n_off = [noff ;[ni;]] 
                 n_off = [n_off ni]; %alle samples in f-dom met te lage vermogen
             end
         else
@@ -104,13 +103,12 @@ for i = 1: length(f1)
     end
 end
 
-MASK = ones(N/2-1,1);
+
+
+MASK = ones(sh,1);
 for i = 1:length(n_off)
     MASK(n_off(i),1) = 0;
 end
-
-
-%sample in n-domein
 
 %{
 % Gemiddelde vermogen signaal per kanaal

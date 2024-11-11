@@ -12,6 +12,7 @@ N = 2048; % Total number of symbols in a single OFDM frame, i.e., the DFT size
 Lcp = 300;
 SNR = 10000000;
 MASK = eye(N/2-1,1);
+BWusage = 0.5;
 
 % QAM modulation
 [qamStream,x] = qam_mod(bitStream, M);
@@ -52,66 +53,77 @@ berTransmission = ber(bitStream,rxBitStream);
 imageRx = bitstreamtoimage(rxBitStream, imageSize, bitsPerPixel);
 %% OEF 4.3
 
+
+[qamStream2,x2] = qam_mod(bitStream, M);
+
+ofdmStream2 = ofdm_mod( qamStream2, N, Lcp);
+
+rxOfdmStream2 = fftfilt(h,ofdmStream2);
+rxOfdmStream2 = awgn(rxOfdmStream2,SNR);
+
+
 figure
 plot(1:length(h),h)
 title('h')
 
-fs = 16000;
-Ntot = length(h);
+fs = 16000;% Sampling frequentie van h
 
-padLength = abs(mod(size(h,1),N) - N) ;
-if(padLength == N)
-    padLength = 0;
-end
 
-h = [h; zeros(padLength,1)];
+sh = N/2-1; %aantal samples van H
+s1 = fft(h, sh); % H, fft pads h already to length sh
 
-s1 = fft(h, N); % H
-PSD_h = sum(abs(s1).^2,2)*fs/N;
-y = pow2db(PSD_h);
+PSD_h = sum(abs(s1).^2,2)*fs/sh;
+y = PSD_h; %vermogen in dB
 
 figure;
-subplot(2,1,1)
-plot(1:N,y);
-xlabel('Frequency (kHz)');
-ylabel('Normalized Power/frequency (dB/Hz)')
-title('|H|^2')
+subplot(1,1,1)
+plot(1:sh,y);
+xlabel('sample');
+ylabel('|H|^2')
 
-p = length(ofdmStream)/(N+Lcp); %aantal kanalen
-fs = 16000; % Sampling frequentie van h
-PSD_threshold = 0.5*max(y);
-
+%p = length(ofdmStream)/(N+Lcp); %aantal kanalen
+fs = 16000; 
+PSD_threshold = 0.5*max(abs(y));
 
 %masker opstellen
-f1 = 1:N;
-n_off=[]; %alle samples waar masker 0 moet zijn
-c = N/fs; % fs/N = one frequency bin
+n_on=[]; %alle samples waar masker 1 moet zijn
+c = fs/N; % fs/N = one frequency bin
+y_below = [];
 
-%samples zoeken waarbij vermogen te laag is
-for i = 1: length(f1)
-    if y(i) <= PSD_threshold
-        ni = floor(f1(i)*c);
-        a = length(n_off);
+%samples zoeken waarbij vermogen hoog is
+for i = 1:sh
+    if y(i) >= PSD_threshold %vermogen die hoger is dan de treshold
+        %ni = floor(i*c); %frequentie bin: k*fs/N
+        a = length(n_on);
         if a ~= 0 
             %geen beginwaarde
-            if n_off(a) == ni | ni == 0 %geen DC sample
-                n_off = n_off;
+            if n_on(a) == i | i == 0
+                n_on = n_on;
+
             else
-                n_off = [n_off ni]; %alle samples in f-dom met te lage vermogen
+                n_on = [n_on [i; y(i)]];
             end
         else
             %beginwaarde
-            if ni ~= 0
-                n_off = [n_off ni];
+            if i ~= 0
+                n_on = [n_on [i; y(i)]];
             end
         end
+    else
+        y_below= [y_below y(i)];
     end
+
 end
 
-MASK = ones(N/2-1,1);
-for i = 1:length(n_off)
-    MASK(n_off(i),1) = 0;
+%BW to use
+nuse = sort(n_on(1,:),'descend'); %alle frequency bins
+nuse = nuse(1:floor(BWusage*length(nuse)));
+
+MASK = zeros(sh,1);
+for i = 1:size(nuse,2)
+    MASK(nuse(i),1) = 1;
 end
+
 
 %{
 % Gemiddelde vermogen signaal per kanaal
@@ -122,39 +134,8 @@ for i = 1:p
 end
 %}
 
-%{
-V=[]; %lengte px1
-%Selecteer frequenties met voldoende hoge vermogen = 1; frequenties met slechte vermogen = 0; 
-for i=1:length(S)
-    if S(i) >= PSD_threshold
-        V = [V 1];
-    else
-        V = [V 0];
-    end
-end
-%}
 
-%{
-
-% Data simuleren en ON-OFF Bit Loading toepassen
-
-data = toeplitz([V(1) fliplr(V(2:end))], V);
-data = data(:,1)';
-padlength = abs(mod(size(data,2),N/2-1)-(N/2-1));
-if padlength == N/2-1
-    padlength = 0;
-end
-data = [zeros(1,size(data,2)); data ; zeros(padlength,size(data,2))];
-
-
-[qamStream2,x2] = qam_mod(bitStream, M);
-
-ofdmStream2 = ofdm_mod( qamStream2, N, Lcp);
-
-rxOfdmStream2 = fftfilt(h,ofdmStream2);
-rxOfdmStream2 = awgn(rxOfdmStream2,SNR);
-
-[ rxQamStream2, CHANNELS2 ] = ofdm_demod(rxOfdmStream2,N,Lcp,length(qamStream2),h,data(:,1),1);
+[ rxQamStream2, CHANNELS2 ] = ofdm_demod(rxOfdmStream2,N,Lcp,length(qamStream2),h,MASK,1);
 
 %}
 
