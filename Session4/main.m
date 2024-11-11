@@ -66,39 +66,73 @@ end
 
 h = [h; zeros(padLength,1)];
 
-[s1,f1,t1] = spectrogram(h, N);
-PSD_h = sum(abs(s1).^2,2)*fs;
+s1 = fft(h, N); % H
+PSD_h = sum(abs(s1).^2,2)*fs/N;
 y = pow2db(PSD_h);
 
 figure;
 subplot(2,1,1)
-plot(f1,y);
+plot(1:N,y);
 xlabel('Frequency (kHz)');
-ylabel('Power/frequency (dB/Hz)')
+ylabel('Normalized Power/frequency (dB/Hz)')
 title('|H|^2')
 
-p = length(ofdmStream)/(N+Lcp); % Aantal OFDM-subcarriers
-fs = 16000; % Sampling frequentie
-PSD_threshold = 0.1*max(y);
+p = length(ofdmStream)/(N+Lcp); %aantal kanalen
+fs = 16000; % Sampling frequentie van h
+PSD_threshold = 0.5*max(y);
 
-% Vermogen per kanaal
-CHANNELS = reshape(CHANNELS,N,[]);
-S = [];
-for i =1:size(CHANNELS,2)
-    S(i) = abs(CHANNELS(i))^2;
+
+%masker opstellen
+f1 = 1:N;
+n_off=[]; %alle samples waar masker 0 moet zijn
+c = N/fs; % fs/N = one frequency bin
+
+%samples zoeken waarbij vermogen te laag is
+for i = 1: length(f1)
+    if y(i) <= PSD_threshold
+        ni = floor(f1(i)*c);
+        a = length(n_off);
+        if a ~= 0 
+            %geen beginwaarde
+            if n_off(a) == ni | ni == 0 %geen DC sample
+                n_off = n_off;
+            else
+                n_off = [n_off ni]; %alle samples in f-dom met te lage vermogen
+            end
+        else
+            %beginwaarde
+            if ni ~= 0
+                n_off = [n_off ni];
+            end
+        end
+    end
 end
 
+MASK = ones(N/2-1,1);
+for i = 1:length(n_off)
+    MASK(n_off(i),1) = 0;
+end
+
+%{
+% Gemiddelde vermogen signaal per kanaal
+rxOFDM_matrix = reshape(rxOfdmStream,p,[]);
+S = [];
+for i = 1:p
+    S(i) = sum(abs(rxOFDM_matrix(i)).^2)/length(rxOFDM_matrix(i));
+end
+%}
+
+%{
 V=[]; %lengte px1
 %Selecteer frequenties met voldoende hoge vermogen = 1; frequenties met slechte vermogen = 0; 
 for i=1:length(S)
     if S(i) >= PSD_threshold
-        display('ok')
         V = [V 1];
     else
-        display('nok')
         V = [V 0];
     end
 end
+%}
 
 %{
 
@@ -115,11 +149,10 @@ data = [zeros(1,size(data,2)); data ; zeros(padlength,size(data,2))];
 
 [qamStream2,x2] = qam_mod(bitStream, M);
 
-ofdmStream2 = ofdm_mod( qamStream2, N, Lcp, data(:,1));
+ofdmStream2 = ofdm_mod( qamStream2, N, Lcp);
 
 rxOfdmStream2 = fftfilt(h,ofdmStream2);
 rxOfdmStream2 = awgn(rxOfdmStream2,SNR);
-
 
 [ rxQamStream2, CHANNELS2 ] = ofdm_demod(rxOfdmStream2,N,Lcp,length(qamStream2),h,data(:,1),1);
 
