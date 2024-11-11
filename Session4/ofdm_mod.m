@@ -46,6 +46,8 @@ elseif nargin == 6
     Lt = varargin{1};
     trainblock = varargin{2};
     ON_OFF_mask = varargin{3};
+else
+    ON_OFF_mask = ones(N,1);
 end
 
 %% Construct the OFDM sequence
@@ -66,7 +68,7 @@ QAM_matrix = reshape(QAM_seq,N/2-1,[]); %15x1280 met N = 32, N/2-1 = 15
 
 % Construct the OFDM frames according to Figure 2 in session 3
 fOFDM_frame = [zeros(1,size(QAM_matrix,2)) ; QAM_matrix ; zeros(1,size(QAM_matrix,2)) ; conj(flipud(QAM_matrix)) ];
-%size = 32x1280
+fOFDM_frame = fOFDM_frame.*ON_OFF_mask;
 %eerste rij nullen voor DC-componenten
 %symmetrisch om reële tijdsignaal te bekomen
 

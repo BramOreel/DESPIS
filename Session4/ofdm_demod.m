@@ -82,6 +82,7 @@ elseif nargin == 10 % Session 7
     type = varargin{7};
 else
     equalization = 0;
+    ON_OFF_mask = ones(1,N);
 end
 
 %% Perform OFDM demodulation
@@ -100,11 +101,14 @@ QAM_matrix = fft(OFDM_matrix,N);
 % Apply channel equalisation (you can ignore this until exercise 4.2.3)
 
 if equalization
-    CHANNEL = fft(channel,N)'; 
+    CHANNEL = fft(channel,N).'; 
     QAM_matrix = QAM_matrix./CHANNEL;
     QAM_matrix(isinf(QAM_matrix)) = 0;
     QAM_matrix(isnan(QAM_matrix)) = 0;
 end
+
+
+QAM_matrix = QAM_matrix.*ON_OFF_mask;
 
 % Remove the redundant parts of QAM_matrix
 QAM_matrix = QAM_matrix(2:(N/2),:);   %this is the fft output and needs to be scaled with an inverse
