@@ -15,7 +15,7 @@ function [ bit_seq ] = qam_demod( QAM_seq, M, streamLength,x)
 assert(sum(nextpow2(M)==log2(M))==length(M),'M is not a power of 2.')
 
 %% Demoludation by calling qamdemod
-QAM_seq = QAM_seq./1;
+QAM_seq = QAM_seq./x;
 
 bit_seq = qamdemod(QAM_seq,M);
 

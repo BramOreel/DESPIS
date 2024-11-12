@@ -31,7 +31,7 @@ assert( mod(length(bit_seq),sum(N))==0,'Bit sequence should contain a number of 
 QAM_seq = qammod(bit2int(bit_seq,N),M);
 x =       mean(abs(QAM_seq).^2);
 x =       1 / sqrt(x);
-%QAM_seq = QAM_seq.*x;
+QAM_seq = QAM_seq.*x;
 
 end
 
