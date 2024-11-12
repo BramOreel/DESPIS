@@ -110,7 +110,7 @@ end
 
 
 
-QAM_matrix = QAM_matrixON;%reshape(QAM_seq,N/2-1,[]); 
+QAM_matrix = QAM_matrixON;
 
 
 % Construct the OFDM frames according to Figure 2 in session 3
