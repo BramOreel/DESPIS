@@ -39,7 +39,7 @@ ones_freq_mask = ones(1,N/2-1);
 
 
 % QAM modulation
-[qamStream,x] = qam_mod(bitStream, M); %output (Mx1)
+qamStream = qam_mod(bitStream, M); %output (Mx1)
 scatterplot(qamStream);
 
 % OFDM modulation
@@ -69,7 +69,7 @@ rxQamStream = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,frequency_mask,1
 scatterplot(rxQamStream);
 
 % QAM demodulation
-rxBitStream = qam_demod(rxQamStream,M, length(bitStream),x);
+rxBitStream = qam_demod(rxQamStream,M, length(bitStream));
 
 % Compute BER
 berTransmission = ber(bitStream,rxBitStream);

@@ -4,7 +4,6 @@ clear; close all; clc;
 
 % Convert BMP image to bitstream
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
-n = bitsPerPixel; % hier 8
 
 Nq = 4;
 M = 2^Nq; % QAM constellation size
@@ -19,17 +18,18 @@ h = load('channel_session4.mat').h';
 
 
 %On-off bit loading
-H = fft(h, N/2-1);       % Channel frequency response
+H = fft(h, N);       % Channel frequency response
 H_abs = abs(H);
-[H_sorted, idx_sorted] = sort(H_abs(1:N/2-1), 'descend');
+[H_sorted, idx_sorted] = sort(H_abs(1:N), 'descend');
 
                                 % Percentage of frequency bins to use
 num_bins = floor(length(idx_sorted) * (BWusage / 100));        % Number of bins to use
 selected_bins = idx_sorted(1:num_bins);      % Indices of selected bins, these bins have a good SNR
 
 % Create a frequency mask to use only the selected bins
-frequency_mask = zeros(N/2-1, 1);
+frequency_mask = zeros(N, 1);
 frequency_mask(selected_bins) = 1;
+frequency_mask = frequency_mask(1:N/2-1);
 
 ones_freq_mask = ones(1,N/2-1);
 
@@ -38,12 +38,12 @@ ones_freq_mask = ones(1,N/2-1);
 
 
 % QAM modulation
-[qamStream,x] = qam_mod(bitStream, M); %output (Mx1)
+qamStream = qam_mod(bitStream, M); %output (Mx1)
 scatterplot(qamStream);
 
 % OFDM modulation
 %frequency_mask
-ofdmStream = ofdm_mod(qamStream, N, Lcp,);
+ofdmStream = ofdm_mod(qamStream, N, Lcp,frequency_mask);
 
 
 
@@ -52,11 +52,7 @@ L_channel = 6;
 %% Channel option 1
 min_val = 0;
 max_val = 1;
-%h = [1 randn(1,L_channel-1)];
-%h = load('channel_session4.mat').h';
-%h = load('IRest.mat').h2_trim';
-%h = h(17:end);
-%h = [1 h];
+%h = randn(1,L_channel-1);
 %h = [1 5 4 3 2 4];
 
 rxOfdmStream = fftfilt(h,ofdmStream);
@@ -64,11 +60,11 @@ rxOfdmStream = awgn(rxOfdmStream,SNR,"measured");
 % OFDM demodulation
 % met channel equalizer
 %function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin, streamLength,channel,equalization )
-rxQamStream = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,ones_freq_mask,1);
+rxQamStream = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,frequency_mask,1);
 scatterplot(rxQamStream);
 
 % QAM demodulation
-rxBitStream = qam_demod(rxQamStream,M, length(bitStream),x);
+rxBitStream = qam_demod(rxQamStream,M, length(bitStream));
 
 % Compute BER
 berTransmission = ber(bitStream,rxBitStream);
