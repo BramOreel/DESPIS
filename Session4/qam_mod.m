@@ -1,4 +1,4 @@
-function [ QAM_seq , x ] = qam_mod( bit_seq, M )
+function [ QAM_seq ] = qam_mod( bit_seq, M )
 % Modulates a bit sequence into M-ary QAM format. 
 %
 % INPUT:
@@ -20,7 +20,7 @@ if(padLength == N)
 end
 
 %display(length(bit_seq),'bitseq unpadded lenght ')
-bit_seq = [bit_seq; zeros(padLength,1)]; % Padded bit sequence
+bit_seq = [bit_seq; zeros(padLength,1)]; % Padded bit sequence, bitseq = 153600
 %display(length(bit_seq),'bitseq padded length')
 
 % Check that the bit sequence is correctly padded
@@ -28,10 +28,10 @@ assert( mod(length(bit_seq),sum(N))==0,'Bit sequence should contain a number of 
 
 %% Call to qammod() to obtain the M-ary QAM symbols
 %display(length(bit2int(bit_seq,N)), 'length of integerseq')
-QAM_seq = qammod(bit2int(bit_seq,N),M);
-x =       mean(abs(QAM_seq).^2);
-x =       1 / sqrt(x);
-QAM_seq = QAM_seq.*x;
+QAM_seq = qammod(bit2int(bit_seq,N),M);%19200 integers
+%x =       mean(abs(QAM_seq).^2);
+%x =       1 / sqrt(x);
+%QAM_seq = QAM_seq.*x; %lengte van 19200
 
 end
 

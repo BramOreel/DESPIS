@@ -102,30 +102,31 @@ QAM_matrix = fft(OFDM_matrix,N);
 
 % Apply channel equalisation (you can ignore this until exercise 4.2.3)
 CHANNELS = 1;
-if equalization
-    padLength = abs(mod(size(channel,1),N)-(N)) ;
-    if(padLength == N)
-        padLength = 0;
-    end
-    channel = [channel; zeros(padLength,1)];
-    CHANNEL = fft(channel);
-    CHANNELS = reshape(CHANNEL,N,[]);
-    for i = 1: size(QAM_matrix,2)
-        QAM_matrix(:,1) = QAM_matrix(:,1)./CHANNELS;
-    end
-    QAM_matrix(isinf(QAM_matrix)) = 0;
-    QAM_matrix(isnan(QAM_matrix)) = 0; %NxP
-end
 
- %{
 if equalization
-    CHANNEL = fft(channel,N).'; 
+    p = size(OFDM_matrix,2);
+    pad = abs(mod(length(channel),N*p)-N*p);
+    if pad == N*p
+        pad =0;
+    end
+    channel = [channel; zeros(pad,1)];
+    channel = reshape(channel,N,[]);
+    CHANNEL = fft(channel); 
     QAM_matrix = QAM_matrix./CHANNEL;
     QAM_matrix(isinf(QAM_matrix)) = 0;
     QAM_matrix(isnan(QAM_matrix)) = 0;
 end
 
+%{
+if equalization
+    CHANNEL = fft(channel,N); 
+    QAM_matrix = QAM_matrix./CHANNEL;
+    QAM_matrix(isinf(QAM_matrix)) = 0;
+    QAM_matrix(isnan(QAM_matrix)) = 0;
+end
+%}
 
+%{
     padLength = abs(mod(size(channel,1),length(OFDM_seq))-(N)) ;
     if(padLength == N)
         padLength = 0;
@@ -165,10 +166,10 @@ QAM_matrix = QAM_matrix(2:(N/2),:);   %this is the fft output and needs to be sc
 
 % Apply on-off mask (you can ignore this until exercise 4.3)
 
-QAM_matrix = QAM_matrix.*ON_OFF_mask;
+%QAM_matrix = QAM_matrix.*ON_OFF_mask;
 
 % Supply streamLength number of symbols (you can ignore this until exercise 4.2)
-QAM_matrix = transpose(QAM_matrix);
+QAM_matrix = QAM_matrix(:);
 data_seq = QAM_matrix(1:streamLength);
 
 
@@ -182,4 +183,5 @@ end
 
 % Truncate the array up to the last valid element
 data_seq = data_seq(1:idx);
+
 end

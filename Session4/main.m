@@ -9,51 +9,59 @@ clear; close all; clc;
 Nq = bitsPerPixel; % hier 8
 M = 2^Nq; % QAM constellation size
 N = 2048; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 300;
-SNR = 10000000;
+Lcp = 30;
+SNR = 1000000000;
 MASK = eye(N/2-1,1);
 BWusage = 0.5;
 
 % QAM modulation
-[qamStream,x] = qam_mod(bitStream, M);
+[qamStream] = qam_mod(bitStream, M);
 
 
 scatterplot(qamStream)
 title('after QAM_mod')
 
-
-% OFDM modulation
+%OFDM modulation
 ofdmStream = ofdm_mod(qamStream, N, Lcp, 4 );
 
 % Channel
-h = load('channel_session4.mat').h';
+%h = load('channel_session4.mat').h';
+h = [1 2 3 4 5 6 7 8];
+%h = [ 1 ];
 h = h';
 
-%%
 rxOfdmStream = fftfilt(h,ofdmStream);
-rxOfdmStream = awgn(rxOfdmStream,SNR);
+%rxOfdmStream = awgn(rxOfdmStream,SNR);
 
 % OFDM demodulation
 
 %function [ data_seq, CHANNELS ] = ofdm_demod(OFDM_seq,N,Lcp,varargin, streamLength,channel,MASK,equalization )
-[ rxQamStream, CHANNELS ] = ofdm_demod(rxOfdmStream,N,Lcp,length(qamStream),h,MASK,1);
+[ rxQamStream, CHANNELS ] = ofdm_demod(ofdmStream,N,Lcp,length(qamStream),h,MASK,1);
+%[ rxQamStream, CHANNELS ] = ofdm_demod(ofdmStream,N,Lcp);
 
 scatterplot(rxQamStream);
 title('after OFDM-modulation')
 
-%%
-
 % QAM demodulation
-rxBitStream = qam_demod(rxQamStream,M, length(bitStream),x);
+[rxBitStream] = qam_demod(rxQamStream, M, length(bitStream));
+
 
 % Compute BER
 berTransmission = ber(bitStream,rxBitStream);
 
 % Construct image from bitstream
 imageRx = bitstreamtoimage(rxBitStream, imageSize, bitsPerPixel);
+
+figure
+subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
+subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title('Received image'); drawnow;
+
+
+
+
 %% OEF 4.3
 
-
+%{
 [qamStream2,x2] = qam_mod(bitStream, M);
 
 ofdmStream2 = ofdm_mod( qamStream2, N, Lcp);
@@ -142,8 +150,11 @@ end
 %%
 
 % Plot images
+%{
 figure
 subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
+
 subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title('Received image'); drawnow;
 scatterplot(qamStream)
 title('after QAM_mod')
+%}

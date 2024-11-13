@@ -1,4 +1,5 @@
-function [ bit_seq ] = qam_demod( QAM_seq, M, streamLength,x)
+
+function [ bit_seq ] = qam_demod( QAM_seq, M, streamLength)
 % Demodulates M-ary QAM symbols to bits. 
 %
 % INPUT:
@@ -15,20 +16,21 @@ function [ bit_seq ] = qam_demod( QAM_seq, M, streamLength,x)
 assert(sum(nextpow2(M)==log2(M))==length(M),'M is not a power of 2.')
 
 %% Demoludation by calling qamdemod
-QAM_seq = QAM_seq.*x;
+QAM_seq = QAM_seq./1;
+
+pad = abs(streamLength-length(QAM_seq));
+
+QAM_seq = [QAM_seq; zeros(pad,1)]; % Padded bit sequence, bitseq = 153600
 
 bit_seq = qamdemod(QAM_seq,M);
 
-
-
-%binaryStrings = dec2bin(bit_seq',streamLength/size(bit_seq,1)); % Convert to binary strings
-binaryStrings = dec2bin(bit_seq,streamLength/size(bit_seq',1)); % Convert to binary strings
+binaryStrings = dec2bin(bit_seq',streamLength/size(bit_seq,1)); % Convert to binary strings
 
 binaryArray = reshape(binaryStrings', [], 1); % Reshape to a single colum
 
 binaryArray = str2double(cellstr(binaryArray));
 
-bit_seq = binaryArray(1:streamLength);
 
+bit_seq = binaryArray(1:streamLength);
 
 end
