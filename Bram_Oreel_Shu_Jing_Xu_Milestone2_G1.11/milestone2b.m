@@ -1,15 +1,15 @@
 % DMT-OFDM transmission scheme
 %% Cleanup
 clear; close all; clc;
-
+rng(50);
 % Convert BMP image to bitstream
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
 
-Nq = 4;
+Nq = 2;
 M = 2^Nq; % QAM constellation size
 N = 2048; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 300;
-SNR = 15;
+Lcp = 500;
+SNR = 0;
 BWusage = 60;
 h = load('channel_session4.mat').h';
 
@@ -76,3 +76,4 @@ imageRx = bitstreamtoimage(rxBitStream, imageSize, bitsPerPixel);
 figure
 subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
 subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
+disp(berTransmission);

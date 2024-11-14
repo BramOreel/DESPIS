@@ -6,9 +6,9 @@ clear; close all; clc;
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
 
 N = 1024;
-Lcp = 300;
+Lcp = 500;
 T = 10;
-SNR = 15;
+SNR = 10;
 channel = load('channel_session4.mat').h';
 equalization = 1;
 streamLength = length(bitStream);
