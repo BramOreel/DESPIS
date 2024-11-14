@@ -99,20 +99,26 @@ QAM_matrix = fft(OFDM_matrix,N);
 %Try to estimate the channel
 QAM_matrix_usefull = QAM_matrix(2:(N/2),:); 
 
-CHANNELS = QAM_matrix_usefull(:,1)./trainblock(:,1);
-x = repmat(CHANNELS,1,size(QAM_matrix_usefull,2));
+CHANNW = QAM_matrix_usefull(:,1)./trainblock(:,1);
+
+
+
+
 
 
 
 % Apply channel equalisation (you can ignore this until exercise 4.2.3)
-    QAM_matrix = QAM_matrix_usefull./x;
+
+if equalization
+    CHANNEL = fft(channel,N).'; 
+    QAM_matrix = QAM_matrix./CHANNEL;
     QAM_matrix(isinf(QAM_matrix)) = 0;
     QAM_matrix(isnan(QAM_matrix)) = 0;
-
+end
 
 
 % Remove the redundant parts of QAM_matrix
-%QAM_matrix = QAM_matrix(2:(N/2),:);   
+QAM_matrix = QAM_matrix(2:(N/2),:);   
 
 
 %remove rows that are zero of the QAM matrix we know which rows these are

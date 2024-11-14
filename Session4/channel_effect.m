@@ -6,8 +6,8 @@ clear; close all; clc;
 Nq = 4; %length of bit sequence
 M = 2^Nq; % QAM constellation size
 %channel = ; % Impulse response of channel
-N = 2048; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 300;
+N = 100; % Total number of symbols in a single OFDM frame, i.e., the DFT size
+Lcp = 2;
 SNR = 1000;
 
 %% Channel effect experiment
@@ -18,7 +18,7 @@ bitStream = randi([0, 1], 1,Nq*(N/2-1))'; % Generate the bit sequence correspond
 %bitStream = repmat(bitStream,N/2-1,1); % Repeat this bit sequence to fill 1 OFDM frame
 
 % QAM modulation
-[qamStream,x] = qam_mod(bitStream,M); % Should be of length N/2-1X1. Each symbol should be the same
+qamStream = qam_mod(bitStream,M); % Should be of length N/2-1X1. Each symbol should be the same
 
 % QAM constellation visualization
 scatterplot(qamStream); % 
@@ -27,9 +27,9 @@ scatterplot(qamStream); %
 ofdmStream = ofdm_mod(qamStream,N,Lcp,4); % Should be of length N+LcpX1
 
 % Channel
-h0 = 1 ;
-h1= 0.2;
-h2= 0.5;
+h0 = 0 ;
+h1= 1;
+h2= 0;
 h = [h0 h1 h2];
 rxOfdmStream = fftfilt(h,ofdmStream);
 rxOfdmStream = awgn(rxOfdmStream,SNR);
@@ -45,7 +45,7 @@ rxQamStream = ofdm_demod(rxOfdmStream,N,Lcp,4);
 scatterplot(rxQamStream);
 
 % QAM demodulation
-rxBitStream = qam_demod(rxQamStream,M,size(bitStream,1),x);
+rxBitStream = qam_demod(rxQamStream,M,size(bitStream,1));
 
 % Compute BER
 berTransmission = ber(bitStream,rxBitStream);
