@@ -9,7 +9,7 @@ Lcp = 300; % Cyclic prefix length [samples]
 M = 16; % QAM constellation size
 SNR = 40; % SNR of transmission [dB]
 
-accoustic_transmission = 0; % If 1 acoustic transmission occurs, if 0 a simulated transmission.
+accoustic_transmission = 1; % If 1 acoustic transmission occurs, if 0 a simulated transmission.
 
 %% Construct train block.
 Nq = log2(M);
@@ -21,15 +21,33 @@ Tx = ofdm_mod(train_stream,N,Lcp); % OFDM modulate the QAM stream
 streamlength = length(train_stream);
 
 %% Transmit train block.
+function aligned_Rx = alignIO(inputsignal, outputsignal)
+    r = xcross(inputsignal,outputsignal);
+    [a,b] = max(r);
+    t = b-length(inputsignal)+1; %de tijdsvertraging
+    aligned_Rx = outputsignal(t:end);
+end
+
+
 if ~accoustic_transmission % Exercise 5.1
     h = load('channel_session5.mat').h;
     aligned_Rx = fftfilt(h,Tx);
     aligned_Rx = awgn(aligned_Rx,SNR,"measured");
 else % Exercise 5.2
-    %[] = initparams();
+
+    % zelf gekozen hoe lang de synchronisatiepuls is
+    
+    h = load('channel_session5.mat').h;
+    length_puls = 0.9*length(h)/2; %gekozen lengte: 90% van h
+
+    pulse = repmat([1, -1], 1,length_puls)';
+    sync_pulse = [pulse; zeros(length(h),1)];
+
+    [simin,nbsecs,fs] = initparams(Tx, fs, sync_pulse);
     sim('recplay');
     Rx = simout.signals.values(:,1);
-    aligned_Rx = alignIO(); % Align input and output
+    
+    aligned_Rx = alignIO(Tx, Rx); % Align input and output
 end
 
 %% OFDM Demodulate

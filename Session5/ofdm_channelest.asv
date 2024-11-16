@@ -9,7 +9,7 @@ Lcp = 300; % Cyclic prefix length [samples]
 M = 16; % QAM constellation size
 SNR = 40; % SNR of transmission [dB]
 
-accoustic_transmission = 0; % If 1 acoustic transmission occurs, if 0 a simulated transmission.
+accoustic_transmission = 1; % If 1 acoustic transmission occurs, if 0 a simulated transmission.
 
 %% Construct train block.
 Nq = log2(M);
@@ -26,7 +26,11 @@ if ~accoustic_transmission % Exercise 5.1
     aligned_Rx = fftfilt(h,Tx);
     aligned_Rx = awgn(aligned_Rx,SNR,"measured");
 else % Exercise 5.2
-    %[] = initparams();
+    %zelf gekozen hoe lang de synchronisatiepuls is
+    %
+    sync_pulse = 
+
+    [simin,nbsecs,fs] = initparams(Tx, fs, sync_pulse);
     sim('recplay');
     Rx = simout.signals.values(:,1);
     aligned_Rx = alignIO(); % Align input and output
@@ -36,7 +40,8 @@ end
 [qam_seq,CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp,streamlength,ones(1,N/2-1),train_block);
 
 %Mirror the channels block
-CHANNELS = [CHANNELS ; flipud(CHANNELS)];
+CHANNELS = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
+h_est = ifft(CHANNELS,500);
 
 
 %% QAM Demodulate
@@ -62,7 +67,7 @@ end
 
 figure;
 subplot(2,1,1)
-plot(ifft);
+plot(ifft(CHANNELS,N));
 title('Estimated impulse response')
 xlabel('')
 ylabel('')
