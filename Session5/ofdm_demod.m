@@ -86,6 +86,12 @@ else
 end
 
 %% Perform OFDM demodulation
+% padding
+pad = abs(mod(length(OFDM_seq),N+Lcp)-(N+Lcp));
+if pad == (N+Lcp)
+    pad =0;
+end
+OFDM_seq = [OFDM_seq;zeros(pad,1)];
 % Reshape the received OFDM sequence (serial to parallel conversion)
 OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
 

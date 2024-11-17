@@ -21,33 +21,20 @@ Tx = ofdm_mod(train_stream,N,Lcp); % OFDM modulate the QAM stream
 streamlength = length(train_stream);
 
 %% Transmit train block.
-function aligned_Rx = alignIO(inputsignal, outputsignal)
-    r = xcross(inputsignal,outputsignal);
-    [a,b] = max(r);
-    t = b-length(inputsignal)+1; %de tijdsvertraging
-    aligned_Rx = outputsignal(t:end);
-end
-
-
 if ~accoustic_transmission % Exercise 5.1
     h = load('channel_session5.mat').h;
     aligned_Rx = fftfilt(h,Tx);
     aligned_Rx = awgn(aligned_Rx,SNR,"measured");
-else % Exercise 5.2
-
-    % zelf gekozen hoe lang de synchronisatiepuls is
-    
+else % Exercise 5.2    
     h = load('channel_session5.mat').h;
-    length_puls = 0.9*length(h)/2; %gekozen lengte: 90% van h
-
-    pulse = repmat([1, -1], 1,length_puls)';
+    % zelf gekozen hoe lang de synchronisatiepuls is
+    pulse = sin(2*pi*400*(0:1/fs:1-1/fs))';
+    
     sync_pulse = [pulse; zeros(length(h),1)];
-
     [simin,nbsecs,fs] = initparams(Tx, fs, sync_pulse);
     sim('recplay');
-    Rx = simout.signals.values(:,1);
-    
-    aligned_Rx = alignIO(Tx, Rx); % Align input and output
+    Rx = simout.signals.values(:,1); 
+    aligned_Rx = alignIO(Rx, fs); % Align input and output
 end
 
 %% OFDM Demodulate

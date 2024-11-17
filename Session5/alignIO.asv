@@ -1,0 +1,9 @@
+function [out_aligned] = alignIO(out,fs)
+    pulse = sin(2*pi*f0*(0:1/fs:1));
+    [xc,lags] = xcross(pulse,out);
+    [~,t] = max(abs(xc));
+    t; %de tijdsvertraging
+
+
+    out_aligned = out(t+1:end);
+end
