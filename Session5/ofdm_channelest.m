@@ -27,10 +27,13 @@ if ~accoustic_transmission % Exercise 5.1
     aligned_Rx = awgn(aligned_Rx,SNR,"measured");
 else % Exercise 5.2    
     h = load('channel_session5.mat').h;
+
     % zelf gekozen hoe lang de synchronisatiepuls is
-    pulse = sin(2*pi*400*(0:1/fs:1-1/fs))';
-    
+    Ts = 1; %hoe lang de sinus functie mag duren
+    t = 0:1/fs:Ts-1/fs;
+    pulse = sin(2*pi*1000*t)'; %1kHz sin
     sync_pulse = [pulse; zeros(length(h),1)];
+
     [simin,nbsecs,fs] = initparams(Tx, fs, sync_pulse);
     sim('recplay');
     Rx = simout.signals.values(:,1); 
