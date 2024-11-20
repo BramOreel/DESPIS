@@ -23,5 +23,6 @@ delay = lags(maxIdx); % Find delay corresponding to that lag of maximum cross-co
 
 startIdx = delay + length(sync_pulse) + safety_margin; % Find start index
 out_aligned = out(startIdx:end);
+
 end
 
