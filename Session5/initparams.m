@@ -43,8 +43,10 @@ toplay = [zeros(fs*2,1) ; toplay ; zeros(fs,1)];
 
 %% Create simin
 % Two column matrix: one column is toplay, one column is silence
-max_amp = max(abs(toplay));
-scaled_toplay = toplay./max_amp;
+x_min = min(toplay);
+x_max  = max(toplay);
+x_norm = (toplay - x_min)./(x_max - x_min);
+scaled_toplay = 2*x_norm -1;
 
 simin = [scaled_toplay  zeros(size(scaled_toplay))];
 

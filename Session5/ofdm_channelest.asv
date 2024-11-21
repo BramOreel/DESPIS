@@ -49,10 +49,7 @@ else % Exercise 5.2
     Rx = simout.signals.values(:,1); 
     aligned_Rx = alignIO(Rx, fs); % Align input and output
 
-    %This section was just done to be able to receive our training data
-    %block. This block has gone through the channel (the air) and has been
-    %perturbed by noise. Using this information we can estimate our channel
-    %at the output. No actual data has been transmitted here
+    %This section was just done to be able to receive our training 
 
 
 
