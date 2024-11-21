@@ -1,4 +1,4 @@
-function [ bit_seq ] = qam_demod( QAM_seq, M, streamLength,x)
+function [ bit_seq ] = qam_demod( QAM_seq, M, streamLength)
 % Demodulates M-ary QAM symbols to bits. 
 %
 % INPUT:

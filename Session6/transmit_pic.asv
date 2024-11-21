@@ -17,7 +17,6 @@ channel = "simulation"; % acoustic or simulation
 % Data blocks
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
 qamStream = qam_mod(bitStream, M);
-streamLength = length(bitStream);
 
 
 
@@ -79,22 +78,10 @@ elseif channel == "acoustic"
 end
 
 %% OFDM Demodulate
-[rx_qam, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp,length(qamStream),ON_OFF_mask,train_block,Lt,Ld,nbPackets);
+[rx_qam, CHANNELS] = ofdm_demod();
 
 %% QAM Demodulate
-rx_bits = qam_demod(rx_qam,M,streamLength);
+rx_bits = qam_demod();
 
 %% Bit error rate
-BER = ber(rx_bits,bitStream );
-
-% Construct image from bitstream
-imageRx = bitstreamtoimage(rx_bits, imageSize, bitsPerPixel);
-
-% Plot images
-figure
-subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
-subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
-disp(BER);
-
-
-
+BER = ber( )

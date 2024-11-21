@@ -103,11 +103,24 @@ for k = 1:length(ON_OFF_mask)
     end
 end
 
+nbPackets = ceil(size(QAM_matrixON,2)/Ld);
+QAM_matrix = [];
+i = 1;
+while i <= size(QAM_matrixON,2)
+    for j = 1:Lt
+        QAM_matrix = [QAM_matrix , trainblock];
+    end
+
+    if(i + Ld <= size(QAM_matrixON,2))
+        QAM_matrix = [QAM_matrix, QAM_matrixON(:,i:i+Ld-1)];
+    else
+        QAM_matrix = [QAM_matrix, QAM_matrixON(:,i:end),zeros(N/2-1,nbPackets*Ld - i)];
+    end
+    i = i + Ld;
+
+end
 
 
-
-
-QAM_matrix = QAM_matrixON;
 
 
 % Construct the OFDM frames according to Figure 2 in session 3
