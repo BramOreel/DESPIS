@@ -3,12 +3,12 @@
 clear; close all; clc;
 
 %% Parameters.
-N = 512; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 500; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
-Nq = 2;
+N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
+Lcp = 300; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
+Nq = 4;
 M = 2^Nq; %  constellation size.
-SNR = inf; % SNR of transmission [dB].
-Lt = 10; % Number of training frames.
+SNR = 15; % SNR of transmission [dB].
+Lt = 5; % Number of training frames.
 Ld = 5; % Number of data frames.
 fs = 16000; % Sampling frequency [Hz].
 channel = "simulation"; % acoustic or simulation
@@ -82,6 +82,9 @@ elseif channel == "acoustic"
     sim('recplay');
     Rx = simout.signals.values(:,1);
     aligned_Rx = alignIO(Rx,fs);
+
+
+    %Hoe relateert de Lcp aan de channel estimate? N?
 end
 
 %% OFDM Demodulate
