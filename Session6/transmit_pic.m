@@ -3,13 +3,14 @@
 clear; close all; clc;
 
 %% Parameters.
-N = ; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = ; % Cyclic prefix length [samples].
-M = ; %  constellation size.
+N = 2048; % Total number of symbols in a single OFDM frame, i.e., the DFT size
+Lcp = 500; % Cyclic prefix length [samples].
+Nq = 8;
+M = 2^Nq; %  constellation size.
 SNR = ; % SNR of transmission [dB].
-Lt = ; % Number of training frames.
-Ld = ; % Number of data frames.
-fs = ; % Sampling frequency [Hz].
+Lt = 300; % Number of training frames.
+Ld = 300; % Number of data frames.
+fs = 16000; % Sampling frequency [Hz].
 channel = ; % acoustic or simulation
 
 % Bitloading
@@ -22,12 +23,14 @@ smoothing_factor = .99; % Smoothing factor for simulated channel (see simulate_c
 
 %% Determine bit loading
 % Channel estimation based on a dummy transmission for bitloading
-train_bits = randi(); % Generate a random vector of bits
-trainblock = qam_mod(); % QAM modulate
+
+train_bits = randi([0 1],Nq*(N/2-1),1);; % Generate a random vector of bits
+train_block = qam_mod(train_bits,M); % QAM modulate
 
 if bitloading_flag
     % OFDM modulation of the trainblock
-    trainStream = ofdm_mod();
+    train_stream = repmat(train_block,100,1);
+    trainStream = ofdm_mod(train_stream,N,Lcp);
 
     % Dummy transmission
     if channel == "simulation"
@@ -55,7 +58,7 @@ end
 %% Construct QAM symbol stream.
 % Data blocks
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
-qamStream = qam_mod();
+qamStream = qam_mod(bitStream, M);
 
 %% OFDM modulation
 [ Tx, nbPackets ] = ofdm_mod( );
