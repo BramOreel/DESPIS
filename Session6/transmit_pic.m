@@ -24,7 +24,7 @@ smoothing_factor = .99; % Smoothing factor for simulated channel (see simulate_c
 %% Determine bit loading
 % Channel estimation based on a dummy transmission for bitloading
 
-train_bits = randi([0 1],Nq*(N/2-1),1);; % Generate a random vector of bits
+train_bits = randi([0 1],Nq*(N/2-1),1); % Generate a random vector of bits
 train_block = qam_mod(train_bits,M); % QAM modulate
 
 if bitloading_flag
