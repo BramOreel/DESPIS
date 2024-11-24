@@ -11,7 +11,7 @@ Lcp = 300; % Cyclic prefix length [samples]
 M = 64; % QAM constellation size
 SNR = 10; % SNR of transmission [dB]
 
-accoustic_transmission = 1; % If 1 acoustic transmission occurs, if 0 a simulated transmission.
+accoustic_transmission = 0; % If 1 acoustic transmission occurs, if 0 a simulated transmission.
 
 %% Construct train block.
 Nq = log2(M);
