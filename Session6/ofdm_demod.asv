@@ -107,7 +107,7 @@ QAM_matrix_usefull = QAM_matrix(2:(N/2),:);
 
 
 %Determine the channel equalization for each packet
-
+if nargin ==
 
 
 
@@ -135,8 +135,6 @@ end
 
 QAM_matrix(isinf(QAM_matrix)) = 0;
 QAM_matrix(isnan(QAM_matrix)) = 0;
-
-
 
  
 
