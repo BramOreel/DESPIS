@@ -74,7 +74,18 @@ else % Exercise 5.2
 end
 
 %% OFDM Demodulate
-[qam_seq,CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp,streamlength,ones(1,N/2-1),train_block);
+if pilot_tones
+
+    [qam_seq,CHANNELS] = ofdm_demod_pilots(aligned_Rx,N,Lcp,streamlength,train_block,)
+
+else
+    [qam_seq,CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp,streamlength,ones(1,N/2-1),train_block);
+end
+
+
+
+
+
 scatterplot(qam_seq(1:ceil(N/M)));
 %Mirror the channels block
 CHANNELS = [0;CHANNELS ;0; flipud(conj(CHANNELS))];

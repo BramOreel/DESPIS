@@ -22,8 +22,8 @@ streamLength = length(bitStream);
 
 
 % Bitloading
-ON_OFF_mask = ones(1,N/2-1); % Default all bins to one for regular transmission
-bitloading_flag = 1; % If 1 then on-off/adaptive bitloading is enabled.
+ON_OFF_mask = ones(N/2-1,1); % Default all bins to one for regular transmission
+bitloading_flag = 0; % If 1 then on-off/adaptive bitloading is enabled.
 bitloading_type = "on-off"; % on-off or adaptive 
 BWusage = 60; % Fraction of bins to use for on-off bitloading
 Nswitch = (Lt+Ld)*(N+Lcp); % The simulated channel changes every Nswitch number of samples.
