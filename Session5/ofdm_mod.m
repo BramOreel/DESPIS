@@ -65,13 +65,6 @@ end
 %input is length x
 %the number of columns will not change, only number of rows
 carriers_used = sum(ON_OFF_mask,"all");
-mod_pad = mod(size(QAM_seq,1),carriers_used);
-div_pad = floor(size(QAM_seq,1)/carriers_used);
-if mod_pad ~=0
-    div_pad = div_pad + 1; %numbers of rows in the matrix in think
-end
-
-
 
 %display(length(QAM_seq), 'length QAM_seq before padding')
 padLength = abs(mod(size(QAM_seq,1),carriers_used) - carriers_used) ; % Number of bits to append such that it can be divided nicely into the M-ary QAM format

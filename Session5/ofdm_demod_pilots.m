@@ -35,7 +35,7 @@ for pIdx = 1:nbOFDMsymb % Loop across frames
     dataFrames = ;
         
     % Channel estimation
-    CHANNELS(:,pIdx) = ; % Save channel
+    CHANNELS(:,pIdx) = ; % Save channel call ofdm channelest pilots here
 
     % Equalization of data frames
     data_matrix(:,pIdx) = ;
