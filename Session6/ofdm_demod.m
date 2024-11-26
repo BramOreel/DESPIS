@@ -115,9 +115,10 @@ i = 1;
 CHANNELS = [];
 QAM_matrix = [];
 
-
-while i <= nbPackets*(Lt+Ld)
-    QAM_matrix_train = QAM_matrix_usefull(:,i:i+Lt-1);
+ie = nbPackets*(Lt+Ld);
+while i <= ie
+    e = i+Lt-1;
+    QAM_matrix_train = QAM_matrix_usefull(:,i:e);
     QAM_matrix_train = sum(QAM_matrix_train,2)./Lt;
 
     QAM_matrix_data  = QAM_matrix_usefull(:,i+Lt:i+Lt+Ld-1);
@@ -130,7 +131,6 @@ while i <= nbPackets*(Lt+Ld)
     CHANNELS = [CHANNELS,CHANNEL];
 
     i = i + Ld + Lt;
-
 end
 
 QAM_matrix(isinf(QAM_matrix)) = 0;

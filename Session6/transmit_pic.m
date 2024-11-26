@@ -37,8 +37,8 @@ train_block = qam_mod(train_bits,M); % QAM modulate
 
 %if the bitloading flag in toggled, we will perform two transmissions
 %Basically just the train block about 10 times (fs*2/N blocks)
-trainStream = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, floor(fs*2/N),0,train_block);
-
+[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, floor(fs*2/N),0,train_block); %probleem: Ld = 0 geeft nbPackets = Inf
+%[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, Lt,Ld,train_block);
 
 if bitloading_flag
 
@@ -63,7 +63,7 @@ if bitloading_flag
 
     % Extract the estimated channels
     [~, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, 0,ones(1,N/2-1),train_block,floor(fs*2/N),0,1);
-
+    %[~, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, 0,ones(1,N/2-1),train_block,Lt,Ld,1);
     if bitloading_type == "on-off"
         % Only keep bins of high energy
         H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
@@ -80,35 +80,35 @@ if bitloading_flag
         frequency_mask = frequency_mask(1:N/2-1);
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
     elseif bitloading_type == "adaptive"
-        T = 10;
+
+        %Noise bepalen
         H = CHANNELS;
         H_abs = abs(H).^2;
-            
-        %Pn bepalen
-        pad = abs(mod(length(aligned_Rx),N+Lcp)-(N+Lcp));
-        if pad == (N+Lcp)
-            pad =0;
-        end
 
-        OFDM_seq = [aligned_Rx;zeros(pad,1)];
-        OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
-        OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
-        QAM_matrix = fft(OFDM_matrix,N); 
-
+        h = ifft(CHANNELS);
+        noise = aligned_Rx - fftfilt(h,trainStream); % n = y-h*x
         
-        Y = QAM_matrix(2:(N/2),:);
-
-        X = train_block;
-        NOISE = Y - X .* H;
-
-        H_abs = repmat(H_abs,1,size(Y,2));
-
+        NOISE = fft(noise,N/2-1);
+        T = 10;
+        
         PSDn = abs(NOISE).^2/(N*fs);
 
-        b_mat = floor(log2(1+ H_abs/(T*PSDn)));
-        M = 2.^b_mat;     % Constellation sizes
-        
 
+        %On-off mask
+        SNR_measure = H_abs ./ PSDn;
+
+        [sorted_SNR, sorted_indices] = sort(SNR_measure, 'descend');
+        num_active_tones = ceil(BWusage / 100 * (N/2-1));
+        used_indices = sorted_indices(1:num_active_tones);
+
+        active_tones = zeros(N/2-1, 1);
+        active_tones(used_indices) = 1;
+        
+        %Shannon
+        b_mat = floor(log2(1+ H_abs./(T*PSDn)));
+        b_mat = b_mat.*active_tones; 
+
+        M = 2.^b_mat;     % Constellation sizes
     end
 end
 
