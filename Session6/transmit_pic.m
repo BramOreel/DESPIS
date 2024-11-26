@@ -79,6 +79,7 @@ if bitloading_flag
         frequency_mask(selected_bins) = 1;
         frequency_mask = frequency_mask(1:N/2-1);
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
+
     elseif bitloading_type == "adaptive"
 
         %Noise bepalen
@@ -93,7 +94,6 @@ if bitloading_flag
         
         PSDn = abs(NOISE).^2/(N*fs);
 
-
         %On-off mask
         SNR_measure = H_abs ./ PSDn;
 
@@ -107,8 +107,12 @@ if bitloading_flag
         %Shannon
         b_mat = floor(log2(1+ H_abs./(T*PSDn)));
         b_mat = b_mat.*active_tones; 
+        M_vary = 2.^b_mat;     % Constellation sizes
+        
+        Rx_bitstream = ofdm_adaptive_bitloading(trainStream,N, Lcp,M_vary);
 
-        M = 2.^b_mat;     % Constellation sizes
+        
+
     end
 end
 
