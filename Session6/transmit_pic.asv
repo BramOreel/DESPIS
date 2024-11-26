@@ -91,17 +91,21 @@ if bitloading_flag
         end
 
         OFDM_seq = [aligned_Rx;zeros(pad,1)];
+        % Reshape the received OFDM sequence (serial to parallel conversion)
         OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
-        OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
-        QAM_matrix = fft(OFDM_matrix,N); 
 
-        
+
+        % Remove the cyclic prefix (you can ignore this until exercise 3.2.4)
+        OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
+
+        % Apply fft operation
+        QAM_matrix = fft(OFDM_matrix,N); 
         Y = QAM_matrix(2:(N/2),:);
 
         X = train_block;
         NOISE = Y - X .* H;
 
-        H_abs = repmat(H_abs,1,size(Y,2));
+        H_abs = repmat(H_abs,1,size())
 
         PSDn = abs(NOISE).^2/(N*fs);
 
