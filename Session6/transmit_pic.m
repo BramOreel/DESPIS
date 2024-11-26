@@ -13,6 +13,8 @@ Ld = 19; % Number of data frames.
 fs = 16000; % Sampling frequency [Hz].
 channel = "simulation"; % acoustic or simulation
 
+max_Nq = 5; % Maximum QAM size (64-QAM)
+
 %% Construct QAM symbol stream.
 % Data blocks
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
@@ -83,23 +85,27 @@ if bitloading_flag
     elseif bitloading_type == "adaptive"
         H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
         ch = ifft(H);
-        l = length(fftfilt(ch,trainStream));
-        noise_signal = aligned_Rx(1:l) - fftfilt(ch,trainStream);
+        x_hat = fftfilt(ch,trainStream);
+        noise_signal = aligned_Rx - x_hat;
         
         NOISE = fft(noise_signal,N); %ruis is een reeel signaal
         NOISE = NOISE(1:N/2+1);
         NOISE = (1/(fs*N)) * abs(NOISE).^2;
         NOISE(2:end-1) = 2*NOISE(2:end-1); %PSD van noise
+        NOISE = NOISE(2:end-1);
 
-        RX = fft(aligned_Rx,N); %aligned_Rx is een reeel signaal
-        RX = RX(1:N/2+1);
-        RX = (1/(fs*N)) * abs(RX).^2;
-        RX(2:end-1) = 2*RX(2:end-1); %PSD van het ontvangen signaal
-        
+        H = CHANNELS;        
         T= 10;
-        SNR_per_bin = RX(2:end-1)./(T*NOISE(2:end-1));
+        
+        SNR_per_bin = (abs(H).^2)./(T*NOISE);
+        SNR_tot=sum((abs(H).^2)*(1/(N*fs)),"all")/sum(NOISE,"all");
+        
+        %totale SNR
 
-
+        Pch = ch.^2; % Signaalvermogen
+        Pn = noise_signal(1:N).^2; % Ruisvermogen
+        SNR_calculated_dB = 10 * log10(Pch ./ Pn);
+        SNR_calculated_dB=mean(SNR_calculated_dB);
         %{
         % Noise in frequentiedomein per frame (gemiddelde over frames)
         noise_power = zeros(N/2-1, 1);
@@ -117,8 +123,7 @@ if bitloading_flag
         %}
 
         %T = 1;
-        H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
-        H_abs = abs(H);
+       
 
         %SNR_per_bin = H_abs.^2 ./ (T*noise_power); % SNR op basis van kanaal en noise, zou ongeveer 31.62 moeten zijn
 
@@ -132,9 +137,15 @@ if bitloading_flag
         %Shannon
         b_mat = floor(log2(1+ SNR_per_bin));
         b_mat = b_mat.*active_tones; 
+        for i=1:length(active_tones)
+            if b_mat(i)>max_Nq
+                b_mat(i) = max_Nq;
+            end
+        end
+
         M_vary = 2.^b_mat;     % Constellation sizes
      
-        Rx_bitstream = ofdm_adaptive_bitloading(train_bits,h,N,Lcp,M_vary,SNR_per_bin,active_tones);
+        Rx_bitstream = ofdm_adaptive_bitloading(train_bits,ch,N,Lcp,M_vary,SNR_calculated_dB,active_tones);
 
 
         %Noise bepalen

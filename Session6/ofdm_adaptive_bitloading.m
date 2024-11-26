@@ -29,14 +29,15 @@ end
 qamStream_padded = [qamStream ;zeros(padLength,1)];
 
 
-ofdmStream = ofdm_mod(qamStream_padded,N,Lcp,ON_OFF_mask);
+[ofdmStream] = ofdm_mod(qamStream_padded,N,Lcp,ON_OFF_mask);
 
 %Send the ofdm stream through the channel
 rxOfdmStream = fftfilt(channel,ofdmStream);
+
 rxOfdmStream = awgn(rxOfdmStream,SNR,'measured');
 
 %ofdm demodulation
-rxQamStream = ofdm_demod(rxOfdmStream, N, Lcp, length(qamStream), channel, ones(1,N/2-1), equalization);
+rxQamStream = ofdm_demod(rxOfdmStream, N, Lcp, length(qamStream), channel, ones(1,N/2-1), 0);
 
 
 %convert the data back to a bitstream

@@ -13,6 +13,8 @@ Ld = 19; % Number of data frames.
 fs = 16000; % Sampling frequency [Hz].
 channel = "simulation"; % acoustic or simulation
 
+max_qam_size = 64; % Maximum QAM size (64-QAM)
+
 %% Construct QAM symbol stream.
 % Data blocks
 [bitStream, imageData, colorMap, imageSize, bitsPerPixel] = imagetobitstream('image.bmp');
@@ -83,15 +85,18 @@ if bitloading_flag
     elseif bitloading_type == "adaptive"
         H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
         ch = ifft(H);
-        l = length(fftfilt(ch,trainStream));
-        noise_signal = aligned_Rx(1:l) - fftfilt(ch,trainStream);
+        x_hat = fftfilt(ch,trainStream);               
         
         NOISE = fft(noise_signal,N); %ruis is een reeel signaal
         NOISE = NOISE(1:N/2+1);
         NOISE = (1/(fs*N)) * abs(NOISE).^2;
         NOISE(2:end-1) = 2*NOISE(2:end-1); %PSD van noise
+        NOISE = NOISE(2:end-1);
 
-        RX = fft(aligned_Rx,N); %aligned_Rx is een reeel signaal
+        H = CHANNELS;        
+        T= 10;
+        
+        SNR_per_bin = abs(H(1:end)).^2./(T*NOISE(2:end-1));
         
 
 
@@ -111,11 +116,10 @@ if bitloading_flag
         noise_power = noise_power / Lt; % Gemiddeld over alle trainingsframes
         %}
 
-        T = 1;
-        H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
-        H_abs = abs(H);
+        %T = 1;
+       
 
-        SNR_per_bin = H_abs.^2 ./ (T*noise_power); % SNR op basis van kanaal en noise, zou ongeveer 31.62 moeten zijn
+        %SNR_per_bin = H_abs.^2 ./ (T*noise_power); % SNR op basis van kanaal en noise, zou ongeveer 31.62 moeten zijn
 
         [sorted_SNR, sorted_indices] = sort(SNR_per_bin, 'descend');
         num_active_tones = ceil(BWusage / 100 * (N/2-1));
@@ -129,7 +133,7 @@ if bitloading_flag
         b_mat = b_mat.*active_tones; 
         M_vary = 2.^b_mat;     % Constellation sizes
      
-        Rx_bitstream = ofdm_adaptive_bitloading(train_bits,h,N,Lcp,M_vary,SNR_per_bin,active_tones);
+        Rx_bitstream = ofdm_adaptive_bitloading(train_bits,ch,N,Lcp,M_vary,SNR_per_bin,active_tones);
 
 
         %Noise bepalen

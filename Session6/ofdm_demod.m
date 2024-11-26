@@ -86,6 +86,8 @@ else
 end
 
 %% Perform OFDM demodulation
+
+if nargin == 9
 % padding
 pad = abs(mod(length(OFDM_seq),N+Lcp)-(N+Lcp));
 if pad == (N+Lcp)
@@ -160,6 +162,58 @@ end
 
 data_seq = QAM_matrix(:);
 data_seq = data_seq(1:streamLength);
+
+
+elseif nargin == 7
+% Reshape the received OFDM sequence (serial to parallel conversion)
+OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
+
+
+% Remove the cyclic prefix (you can ignore this until exercise 3.2.4)
+OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
+
+% Apply fft operation
+QAM_matrix = fft(OFDM_matrix,N);
+
+
+
+if equalization
+    CHANNEL = fft(channel,N).'; 
+    QAM_matrix = QAM_matrix./CHANNEL;
+    QAM_matrix(isinf(QAM_matrix)) = 0;
+    QAM_matrix(isnan(QAM_matrix)) = 0;
+end
+
+
+% Remove the redundant parts of QAM_matrix
+QAM_matrix = QAM_matrix(2:(N/2),:);   
+
+
+%remove rows that are zero of the QAM matrix we know which rows these are
+%because of the freq mask ON_OFF_mask
+QAM_matrix_red = [];
+for k = 1:length(ON_OFF_mask)
+    if ON_OFF_mask(k) == 1
+        QAM_matrix_red = [QAM_matrix_red; QAM_matrix(k,:)];
+    end
+end
+
+
+
+% Apply on-off mask (you can ignore this until exercise 4.3)
+ QAM_matrix = QAM_matrix_red;
+
+% Supply streamLength number of symbols (you can ignore this until exercise 4.2)
+%We need to truncate the array so that the dimensions fit again
+
+
+data_seq = QAM_matrix(:);
+data_seq = data_seq(1:streamLength);
+
+
+
+end
+
 
 
 end
