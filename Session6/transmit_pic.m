@@ -108,8 +108,8 @@ if bitloading_flag
         b_mat = floor(log2(1+ H_abs./(T*PSDn)));
         b_mat = b_mat.*active_tones; 
         M_vary = 2.^b_mat;     % Constellation sizes
-        
-        Rx_bitstream = ofdm_adaptive_bitloading(trainStream,N, Lcp,M_vary);
+     
+        Rx_bitstream = ofdm_adaptive_bitloading(train_bits,h,N,Lcp,M_vary,SNR_measure,active_tones);
 
         
 

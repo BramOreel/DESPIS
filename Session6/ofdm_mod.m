@@ -52,6 +52,7 @@ end
 
 %% Construct the OFDM sequence
 
+
 % Put the QAM symbols into matrix of N/2-1 rows
 
 
@@ -59,7 +60,6 @@ end
 %means that our padlength is not effective anymore i think. We can however
 %extract the number of allowed carrier frequencies and calculate a new
 %padding
-
 
 %Final dimensions are N/2-1 * div_pad
 %input is length x
@@ -70,8 +70,6 @@ div_pad = floor(size(QAM_seq,1)/carriers_used);
 if mod_pad ~=0
     div_pad = div_pad + 1; %numbers of rows in the matrix in think
 end
-
-
 
 %display(length(QAM_seq), 'length QAM_seq before padding')
 padLength = abs(mod(size(QAM_seq,1),carriers_used) - carriers_used) ; % Number of bits to append such that it can be divided nicely into the M-ary QAM format
@@ -102,6 +100,8 @@ for k = 1:length(ON_OFF_mask)
         end
     end
 end
+
+if nargin == 7
 
 nbPackets = ceil(size(QAM_matrixON,2)/Ld);
 QAM_matrix = [];
@@ -146,6 +146,33 @@ OFDM_frame = [ OFDM_frame(end-Lcp+1:end, :) ;OFDM_frame]; %size = (32+Lcp)x1280 
 
 OFDM_seq = OFDM_frame(:);
 %display(length(OFDM_seq),'length(OFDM_seq)') % 48x1280 = 61440
+
+
+elseif nargin == 4
+
+QAM_matrix = QAM_matrixON;
+
+
+% Construct the OFDM frames according to Figure 2 in session 3
+fOFDM_frame = [zeros(1,size(QAM_matrix,2)) ; QAM_matrix ; zeros(1,size(QAM_matrix,2)) ; conj(flipud(QAM_matrix)) ];
+%eerste rij nullen voor DC-componenten
+%symmetrisch om reële tijdsignaal te bekomen
+
+
+% Apply the inverse Fourier transform (IFFT)
+OFDM_frame = ifft(fOFDM_frame); %size = 32x1280
+
+% Add in the cyclic prefix
+OFDM_frame = [ OFDM_frame(end-Lcp+1:end, :) ;OFDM_frame]; %size = (32+Lcp)x1280 = 48x1280
+%display(size(OFDM_frame),'OFDM_frame with Lcp')
+
+% Serialize the set of OFDM frames
+
+OFDM_seq = OFDM_frame(:);
+%display(length(OFDM_seq),'length(OFDM_seq)') % 48x1280 = 61440
+
+    
+end
 
 end
 

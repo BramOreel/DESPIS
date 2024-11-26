@@ -1,4 +1,4 @@
-function[bitMatrix] = ofdm_adaptive_bitloading(trainStream, channel, N, Lcp, M_vary, SNR,ON_OFF_mask)
+function[bitMatrix] = ofdm_adaptive_bitloading(trainStream, N, Lcp, M_vary)
 
 streamLength = length(trainStream);
 
@@ -6,16 +6,14 @@ j = 1; %Where are we in the bitstream?
 qamStream = [];
 while j <= streamLength
     for i = 1:size(M_vary)
-        M=M_vary(i);
-        Nq = log2(M);
+        Nq = log2(M_vary(i));
         if (M_vary(i) == 1) && (j < streamLength)
             qamStream = [qamStream ; 0];
-        elseif M_vary(i) ~=1 && j + Nq - 1 <= streamLength
-            a = j+Nq-1;
-            qamStream = [qamStream ; qam_mod(trainStream(j:j+Nq-1),M_vary(i))]; %vreemde N HIER
+        elseif M(i) ~=1 && j + Nq - 1 <= streamLength
+            qamStream = [qamStream ; qam_mod(bitStream(j:j+Nq-1),M_vary(i))]; %vreemde N HIER
             j = j+Nq;
-        elseif M_vary(i) ~= 1 && j <= streamLength
-            qamStream = [qamStream ; qam_mod(trainStream(j:end),M_vary(i))];
+        elseif M(i) ~= 1 && j <= streamLength
+            qamStream = [qamStream ; qam_mod(bitStream(j:end),M_vary(i))];
             j = j+Nq;
         end
     end
@@ -29,7 +27,7 @@ end
 qamStream_padded = [qamStream ;zeros(padLength,1)];
 
 
-ofdmStream = ofdm_mod(qamStream_padded,N,Lcp,ON_OFF_mask);
+ofdmStream = ofdm_mod(qamStream_padded,N,Lcp);
 
 %Send the ofdm stream through the channel
 rxOfdmStream = fftfilt(channel,ofdmStream);
@@ -44,8 +42,7 @@ j  = 1;
 bitMatrix = [];
 while j <= length(qamStream)
     for i = 1:size(M_vary)
-        M = M_vary(i);
-        Nq = log2(M);
+        M = 
         if M ~=1 && j == length(qamStream)
             nb_lastBits = streamLength - length(bitMatrix);
             lastBits_padded = qam_demod(rxQamStream(j), M, Nq);
