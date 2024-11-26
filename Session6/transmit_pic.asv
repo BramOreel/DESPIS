@@ -79,34 +79,10 @@ if bitloading_flag
         frequency_mask(selected_bins) = 1;
         frequency_mask = frequency_mask(1:N/2-1);
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
+
     elseif bitloading_type == "adaptive"
-
         %Noise bepalen
-        H = CHANNELS;
-        H_abs = abs(H).^2;
-
-        h = ifft(CHANNELS);
-        noise = aligned_Rx - fftfilt(h,trainStream); % n = y-h*x
-        
-        NOISE = fft(noise,N/2-1);
-        T = 10;
-        
-        PSDn = abs(NOISE).^2/(N*fs);
-        
-        %Shannon
-        b_mat = floor(log2(1+ H_abs./(T*PSDn)));
-        M = 2.^b_mat;     % Constellation sizes
-        
-        %On-off mask
-        SNR_measure = H_abs ./ PSDn;
-
-        [sorted_SNR, sorted_indices] = sort(SNR_measure, 'descend');
-        num_active_tones = ceil(BWusage / 100 * (N/2-1));
-        used_indices = sorted_indices(1:num_active_tones);
-
-        active_tones = zeros(N/2-1, 1);
-        active_tones(used_indices) = 1;
-
+        %M bepalen
 
         
 

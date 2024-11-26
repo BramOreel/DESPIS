@@ -117,7 +117,6 @@ while i <= size(QAM_matrixON,2)
         QAM_matrix = [QAM_matrix, QAM_matrixON(:,i:end),zeros(N/2-1,nbPackets*Ld - i)];
     end
 
-
     %Account for the case if the on off mask needs to be estimated
     if(Ld == 0)
         break;

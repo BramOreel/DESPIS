@@ -81,23 +81,30 @@ if bitloading_flag
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
 
     elseif bitloading_type == "adaptive"
-
-        %Noise bepalen
-        H = CHANNELS;
-        H_abs = abs(H).^2;
-
-        h = ifft(CHANNELS);
-        noise = aligned_Rx - fftfilt(h,trainStream); % n = y-h*x
+        reconstructed_trainStream = ofdm_mod(train_block, N, Lcp, ON_OFF_mask, Lt, Ld, train_block);
+        noise_signal = aligned_Rx(1:length(reconstructed_trainStream)) - reconstructed_trainStream;
         
-        NOISE = fft(noise,N/2-1);
-        T = 10;
+
+        % Noise in frequentiedomein per frame (gemiddelde over frames)
+        noise_power = zeros(N/2-1, 1);
+        for frame = 1:Lt
+            % Extract frame (excl. cyclic prefix)
+            frame_start = (frame-1)*(N+Lcp) + Lcp + 1;
+            frame_end = frame_start + N - 1;
+            frame_signal = noise_signal(frame_start:frame_end);
+
+            % FFT van frame om noise per frequentiebin te bepalen
+            frame_noise_fft = fft(frame_signal, N);
+            noise_power = noise_power + abs(frame_noise_fft(2:N/2)).^2; % Gemiddeld noisevermogen
+        end
+        noise_power = noise_power / Lt; % Gemiddeld over alle trainingsframes
+        T = 1;
+        H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
+        H_abs = abs(H);
         
-        PSDn = abs(NOISE).^2/(N*fs);
+        SNR_per_bin = H_abs.^2 ./ (T*noise_power); % SNR op basis van kanaal en noise
 
-        %On-off mask
-        SNR_measure = H_abs ./ PSDn;
-
-        [sorted_SNR, sorted_indices] = sort(SNR_measure, 'descend');
+        [sorted_SNR, sorted_indices] = sort(SNR_per_bin, 'descend');
         num_active_tones = ceil(BWusage / 100 * (N/2-1));
         used_indices = sorted_indices(1:num_active_tones);
 
@@ -105,11 +112,15 @@ if bitloading_flag
         active_tones(used_indices) = 1;
         
         %Shannon
-        b_mat = floor(log2(1+ H_abs./(T*PSDn)));
+        b_mat = floor(log2(1+ SNR_per_bin));
         b_mat = b_mat.*active_tones; 
         M_vary = 2.^b_mat;     % Constellation sizes
      
-        Rx_bitstream = ofdm_adaptive_bitloading(train_bits,h,N,Lcp,M_vary,SNR_measure,active_tones);
+        Rx_bitstream = ofdm_adaptive_bitloading(train_bits,h,N,Lcp,M_vary,SNR_per_bin,active_tones);
+
+
+        %Noise bepalen
+        %M bepalen
 
         
 
