@@ -4,7 +4,7 @@ clear; close all; clc;
 
 %% Parameters.
 N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 300; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
+Lcp = 600; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
 Nq = 4;
 M = 2^Nq; %  constellation size.
 SNR = 15; % SNR of transmission [dB].
@@ -81,6 +81,57 @@ if bitloading_flag
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
 
     elseif bitloading_type == "adaptive"
+        H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
+        ch = ifft(H);
+        l = length(fftfilt(ch,trainStream));
+        noise_signal = aligned_Rx(1:l) - fftfilt(ch,trainStream);
+        
+        NOISE = fft(noise_signal,N); %ruis is een reeel signaal
+        NOISE = NOISE(1:N/2+1);
+        NOISE = (1/(fs*N)) * abs(NOISE).^2;
+        NOISE(2:end-1) = 2*NOISE(2:end-1); %PSD van noise
+
+        RX = fft(aligned_Rx,N); %aligned_Rx is een reeel signaal
+        
+
+
+        %{
+        % Noise in frequentiedomein per frame (gemiddelde over frames)
+        noise_power = zeros(N/2-1, 1);
+        for frame = 1:Lt
+            % Extract frame (excl. cyclic prefix)
+            frame_start = (frame-1)*(N+Lcp) + Lcp + 1;
+            frame_end = frame_start + N - 1;
+            frame_signal = noise_signal(frame_start:frame_end);
+
+            % FFT van frame om noise per frequentiebin te bepalen
+            frame_noise_fft = fft(frame_signal, N);
+            noise_power = noise_power + abs(frame_noise_fft(2:N/2)).^2; % Gemiddeld noisevermogen
+        end
+        noise_power = noise_power / Lt; % Gemiddeld over alle trainingsframes
+        %}
+
+        T = 1;
+        H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
+        H_abs = abs(H);
+
+        SNR_per_bin = H_abs.^2 ./ (T*noise_power); % SNR op basis van kanaal en noise, zou ongeveer 31.62 moeten zijn
+
+        [sorted_SNR, sorted_indices] = sort(SNR_per_bin, 'descend');
+        num_active_tones = ceil(BWusage / 100 * (N/2-1));
+        used_indices = sorted_indices(1:num_active_tones);
+
+        active_tones = zeros(N/2-1, 1);
+        active_tones(used_indices) = 1;
+        
+        %Shannon
+        b_mat = floor(log2(1+ SNR_per_bin));
+        b_mat = b_mat.*active_tones; 
+        M_vary = 2.^b_mat;     % Constellation sizes
+     
+        Rx_bitstream = ofdm_adaptive_bitloading(train_bits,h,N,Lcp,M_vary,SNR_per_bin,active_tones);
+
+
         %Noise bepalen
         %M bepalen
 

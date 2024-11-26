@@ -4,7 +4,7 @@ clear; close all; clc;
 
 %% Parameters.
 N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 300; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
+Lcp = 600; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
 Nq = 4;
 M = 2^Nq; %  constellation size.
 SNR = 15; % SNR of transmission [dB].
@@ -81,10 +81,26 @@ if bitloading_flag
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
 
     elseif bitloading_type == "adaptive"
-        reconstructed_trainStream = ofdm_mod(train_block, N, Lcp, ON_OFF_mask, Lt, Ld, train_block);
-        noise_signal = aligned_Rx(1:length(reconstructed_trainStream)) - reconstructed_trainStream;
+        H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
+        ch = ifft(H);
+        l = length(fftfilt(ch,trainStream));
+        noise_signal = aligned_Rx(1:l) - fftfilt(ch,trainStream);
         
+        NOISE = fft(noise_signal,N); %ruis is een reeel signaal
+        NOISE = NOISE(1:N/2+1);
+        NOISE = (1/(fs*N)) * abs(NOISE).^2;
+        NOISE(2:end-1) = 2*NOISE(2:end-1); %PSD van noise
 
+        RX = fft(aligned_Rx,N); %aligned_Rx is een reeel signaal
+        RX = RX(1:N/2+1);
+        RX = (1/(fs*N)) * abs(RX).^2;
+        RX(2:end-1) = 2*RX(2:end-1); %PSD van het ontvangen signaal
+        
+        T= 10;
+        SNR_per_bin = RX(2:end-1)./(T*NOISE(2:end-1));
+
+
+        %{
         % Noise in frequentiedomein per frame (gemiddelde over frames)
         noise_power = zeros(N/2-1, 1);
         for frame = 1:Lt
@@ -98,11 +114,13 @@ if bitloading_flag
             noise_power = noise_power + abs(frame_noise_fft(2:N/2)).^2; % Gemiddeld noisevermogen
         end
         noise_power = noise_power / Lt; % Gemiddeld over alle trainingsframes
-        T = 1;
+        %}
+
+        %T = 1;
         H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
         H_abs = abs(H);
-        
-        SNR_per_bin = H_abs.^2 ./ (T*noise_power); % SNR op basis van kanaal en noise
+
+        %SNR_per_bin = H_abs.^2 ./ (T*noise_power); % SNR op basis van kanaal en noise, zou ongeveer 31.62 moeten zijn
 
         [sorted_SNR, sorted_indices] = sort(SNR_per_bin, 'descend');
         num_active_tones = ceil(BWusage / 100 * (N/2-1));
