@@ -1,21 +1,28 @@
-% Given: channel impulse response h
-h = load("Session4\channel_session4.mat").h';
-N = length(h);                % Length of the impulse response
-H = fft(h, N);                % Frequency response of the channel
-H_abs = abs(H);               % Magnitude of the frequency response
-Fs = 16000;
-f = (0:N-1) * (Fs / N);       % Frequency vector, assuming sampling frequency Fs
+% Original frequency-domain signal (example, symmetric for real signals)
+freq_domain = [1, 2, 3, 4, 0, 4, 3, 2]; % 8-point FFT with Hermitian symmetry
+N = length(freq_domain); % Original number of points
 
-% Plot to visualize attenuation
-figure;
-plot(f, 20*log10(H_abs));     % Plot magnitude in dB
-xlabel('Frequency (Hz)');
-ylabel('Magnitude (dB)');
-title('Channel Frequency Response');
+% Step 1: Insert zeros between frequency samples
+zero_padding_factor = 2; % Interpolation factor (e.g., 2x frequency resolution)
+new_length = N * zero_padding_factor; % New length
+freq_domain_interpolated = zeros(1, new_length); % Initialize zero-padded array
 
-%in the test function low frequencies smaller then 500 are bad
-%4600 to 5760 are bad
-%7466 to 8533 are bad
-%10240 to 11306 are bad
-%above 14750 is bad
+% Fill the first half of the spectrum with zeros in between
+freq_domain_interpolated(1:zero_padding_factor:(N/2 + 1) * zero_padding_factor) = freq_domain(1:(N/2 + 1));
 
+% Fill the second half (negative frequencies) of the spectrum, preserving Hermitian symmetry
+freq_domain_interpolated(end - zero_padding_factor * (N/2 - 1):-zero_padding_factor:1 + zero_padding_factor) = ...
+    freq_domain(end:-1:(N/2 + 2));
+
+% Step 2: Inverse FFT to get the interpolated time-domain signal
+time_domain_interpolated = ifft(freq_domain_interpolated, 'symmetric'); % Use 'symmetric' for real signals
+
+% Optional: Check the interpolated frequency spectrum
+freq_domain_check = fft(time_domain_interpolated);
+
+% Visualization
+disp('Original Frequency Domain:');
+disp(freq_domain);
+
+disp('Interpolated Frequency Domain:');
+disp(freq_domain_interpolated);
