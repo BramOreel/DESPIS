@@ -4,16 +4,16 @@ clear; close all; clc;
 
 %% Parameters.
 N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 600; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
+Lcp = 700; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
 Nq = 4;
 M = 2^Nq; %  constellation size.
 SNR = 15; % SNR of transmission [dB].
-Lt = N; % Number of training frames. (<=N)
-Ld = N; % Number of data frames.(<=N)
+Lt = N; % Number of training frames. 
+Ld = 2*N; % Number of data frames.
 fs = 16000; % Sampling frequency [Hz].
 channel = "simulation"; % acoustic or simulation
 
-max_Nq = 5; % Maximum QAM size (64-QAM)
+max_Nq = 4; % Maximum QAM size (64-QAM)
 
 %% Construct QAM symbol stream.
 % Data blocks
@@ -41,7 +41,7 @@ train_block = qam_mod(train_bits,M); % QAM modulate -> (N/2-1) rijen
 %Basically just the train block about 10 times (fs*2/N blocks)
 dummyBitStream = ones(1,Ld)';
 dummy_qam = qam_mod(dummyBitStream,M);
-[trainStream, nbPackets] = ofdm_mod_adap(dummy_qam,N,Lcp,ON_OFF_mask, Lt,Ld,train_block); %x = trainStream
+[trainStream, nbPackets] = ofdm_mod(dummy_qam,N,Lcp,ON_OFF_mask, Lt,Ld,train_block); %x = trainStream
 %[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, floor(fs*2/N),0,train_block); %probleem: Ld = 0 geeft nbPackets = Inf
 %[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, Lt,Ld,train_block);
 
@@ -49,8 +49,8 @@ if bitloading_flag
 
     % Dummy transmission
     if channel == "simulation"
-        aligned_Rx = simulate_channel(trainStream, Nswitch,'channel_session6.mat',smoothing_factor); %h*x
-        aligned_Rx = awgn(aligned_Rx,SNR,'measured'); %y = h*x+n
+        aligned_Rx = simulate_channel(trainStream, Nswitch,'channel_session6.mat',smoothing_factor);
+        aligned_Rx = awgn(aligned_Rx,SNR,'measured'); %y = h*x+n -> bestaat uit trainingsdata en dummy data
     else
         
         duration = 1;
@@ -67,8 +67,10 @@ if bitloading_flag
     end
     if bitloading_type == "on-off"
         % Only keep bins of high energy
+        [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(dummy_qam),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
         H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
         H_abs = abs(H);
+
         [H_sorted, idx_sorted] = sort(H_abs(1:N), 'descend');
 
                                 % Percentage of frequency bins to use
@@ -82,7 +84,8 @@ if bitloading_flag
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
 
     elseif bitloading_type == "adaptive"
-        [aligned_RX, CHANNELS] = ofdm_demod_adap(aligned_Rx,N,Lcp, length(dummy_qam),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
+        %{
+        [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(dummy_qam),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
 
         H = CHANNELS;
         %SNR in het frequentiedomein
@@ -97,10 +100,8 @@ if bitloading_flag
         end
         NOISE = aligned_RX - H.*dummy_qam; 
         PSDn = (abs(NOISE).^2)/(N*fs);
-        
-        
-         
-        T = 10000;
+
+        T = 10;
         
         SNR_per_bin = (abs(H).^2)./(T*PSDn);
 
@@ -122,10 +123,48 @@ if bitloading_flag
         M_vary = 2.^b_mat;     % Constellation sizes
 
         H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
-        channel = ifft(H);
-        
-        Rx_bitstream = ofdm_adaptive_bitloading(bitStream,N, Lcp,channel,SNR, M_vary,active_tones);
+        ch = ifft(H);      
+        %}
+        N = 1024;
+Lcp = 300;
+equalization = 1;
+streamLength = length(bitStream);
+
+%Now we don't use on off bit loading, rather we vary M, while using every
+%frequency
+%Determine M for each frequency
+[aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(dummy_qam),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
+H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
+H_abs = abs(H).^2;
+
+N = 1024;
+Lcp = 300;
+T = 10;
+SNR = 15;
+%streamLength = length(bitStream);
+
+%Now we don't use on off bit loading, rather we vary M, while using every
+%frequency
+%Determine M for each frequency
+
+%b_mat = floor(log2(1 + (N/2-1)*db2pow(SNR).*H_abs()/(T*sum(H_abs(1:N/2-1),"all"))));
+%bit_column = sum(b_mat(1:N/2-1),"all");
+M_vary = 2.^b_mat;
+
+        active_tones = ones(1,N/2-1);
+
+
+        Rx_bitstream = ofdm_adaptive_bitloading(bitStream,N, Lcp,ch,SNR, b_mat.',active_tones, Lt, Ld, train_block);
         BER = ber(Rx_bitstream,bitStream );
+
+        % Construct image from bitstream
+        imageRx = bitstreamtoimage(Rx_bitstream, imageSize, bitsPerPixel);
+
+        % Plot images
+        figure
+        subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
+        subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
+        disp(BER);
 
         %Noise bepalen
         %M bepalen
@@ -168,6 +207,7 @@ scatterplot(rx_qam);
 rx_bits = qam_demod(rx_qam,M,streamLength);
 
 %% Bit error rate
+%{
 BER = ber(rx_bits,bitStream );
 
 % Construct image from bitstream
@@ -178,6 +218,6 @@ figure
 subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
 subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
 disp(BER);
-
+%}
 
 

@@ -4,16 +4,16 @@ clear; close all; clc;
 
 %% Parameters.
 N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 600; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
+Lcp = 700; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
 Nq = 4;
 M = 2^Nq; %  constellation size.
 SNR = 15; % SNR of transmission [dB].
-Lt = N; % Number of training frames. (<=N)
-Ld = N; % Number of data frames.(<=N)
+Lt = N; % Number of training frames. 
+Ld = 2*N; % Number of data frames.
 fs = 16000; % Sampling frequency [Hz].
 channel = "simulation"; % acoustic or simulation
 
-max_Nq = 5; % Maximum QAM size (64-QAM)
+max_Nq = 4; % Maximum QAM size (64-QAM)
 
 %% Construct QAM symbol stream.
 % Data blocks
@@ -49,8 +49,8 @@ if bitloading_flag
 
     % Dummy transmission
     if channel == "simulation"
-        aligned_Rx = simulate_channel(trainStream, Nswitch,'channel_session6.mat',smoothing_factor); %h*x
-        aligned_Rx = awgn(aligned_Rx,SNR,'measured'); %y = h*x+n
+        aligned_Rx = simulate_channel(trainStream, Nswitch,'channel_session6.mat',smoothing_factor);
+        aligned_Rx = awgn(aligned_Rx,SNR,'measured'); %y = h*x+n -> bestaat uit trainingsdata en dummy data
     else
         
         duration = 1;
@@ -67,8 +67,10 @@ if bitloading_flag
     end
     if bitloading_type == "on-off"
         % Only keep bins of high energy
+        [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(dummy_qam),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
         H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
         H_abs = abs(H);
+
         [H_sorted, idx_sorted] = sort(H_abs(1:N), 'descend');
 
                                 % Percentage of frequency bins to use
@@ -82,6 +84,7 @@ if bitloading_flag
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
 
     elseif bitloading_type == "adaptive"
+        
         [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(dummy_qam),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
 
         H = CHANNELS;
@@ -91,15 +94,13 @@ if bitloading_flag
         verschil = abs(length(H)-length(dummy_qam));
         if length(dummy_qam) < length(H)
             dummy_qam = [dummy_qam; zeros(verschil,size(dummy_qam,2))];
-            aligned_RX = [aligned_RX; zeros(verschil,size(aligned_RX,2))];
+            aligned_RX = [aligned_RX; zeros(verschil,size(aligned_RX,2))]; %padden met zeros als dummy_qam niet lang genoeg is, maar dit geeft meer BER!
         elseif length(dummy_qam) > length(H)
             H = [H;zeros(verschil,size(H,2))];
         end
         NOISE = aligned_RX - H.*dummy_qam; 
         PSDn = (abs(NOISE).^2)/(N*fs);
-        
-        
-         
+
         T = 10;
         
         SNR_per_bin = (abs(H).^2)./(T*PSDn);
@@ -120,11 +121,10 @@ if bitloading_flag
         end
 
         M_vary = 2.^b_mat;     % Constellation sizes
-
-        H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
-        channel = ifft(H);      
         
-        Rx_bitstream = ofdm_adaptive_bitloading(bitStream,N, Lcp,channel,SNR, M_vary,active_tones, Lt, Ld, train_block);
+        ch = load('channel_session6.mat').h';
+        
+        Rx_bitstream = ofdm_adaptive_bitloading(bitStream,N, Lcp,ch,SNR, b_mat.',active_tones, Lt, Ld, train_block);
         BER = ber(Rx_bitstream,bitStream );
 
         % Construct image from bitstream
@@ -177,6 +177,7 @@ scatterplot(rx_qam);
 rx_bits = qam_demod(rx_qam,M,streamLength);
 
 %% Bit error rate
+%{
 BER = ber(rx_bits,bitStream );
 
 % Construct image from bitstream
@@ -187,6 +188,6 @@ figure
 subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
 subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
 disp(BER);
-
+%}
 
 

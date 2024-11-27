@@ -1,11 +1,7 @@
-function[bitMatrix] = ofdm_adaptive_bitloading(bitStream,N, Lcp, channel,SNR, M_vary,MASK)
+function[bitMatrix] = ofdm_adaptive_bitloading(bitStream,N, Lcp, channel,SNR, M_vary,MASK, Lt, Ld,train_block)
 
 streamLength = length(bitStream);
-adaptive = 1;
-
-
-
-if adaptive ==  1
+MASK = ones(1,N/2-1);
 
 %{
 %Moduleert bitstream met varierende Nq.
@@ -15,21 +11,19 @@ while j <= streamLength
     for i = 1:size(M_vary,1)
         M=M_vary(i);
         Nq = log2(M);
-        if (M_vary(i) == 1) && (j < streamLength)
+        if (M == 1) && (j < streamLength)
             qamStream = [qamStream ; 0];
-        elseif M_vary(i) ~=1 && j + Nq - 1 <= streamLength
-            qamStream = [qamStream ; qam_mod(bitStream(j:j+Nq-1),M_vary(i))]; %vreemde N HIER
+        elseif M ~=1 && j + Nq - 1 <= streamLength
+            qamStream = [qamStream ; qam_mod(bitStream(j:j+Nq-1),M)]; %vreemde N HIER
             j = j+Nq;
         elseif M_vary(i) ~= 1 && j <= streamLength
-            qamStream = [qamStream ; qam_mod(bitStream(j:end),M_vary(i))];
+            qamStream = [qamStream ; qam_mod(bitStream(j:end),M)];
             j = j+Nq;
         end
     end
 end
-%}
 
-M = 2^8;
-qamStream = qam_mod(bitStream,M);
+
 
 
 padLength = abs(mod(size(qamStream,1),N/2-1) -(N/2-1)) ;
@@ -39,64 +33,35 @@ end
 qamStream_padded = [qamStream ;zeros(padLength,1)];
 
 
-[ofdmStream] = ofdm_mod(qamStream_padded,N,Lcp,MASK);
+[ofdmStream,nbPackets] = ofdm_mod(qamStream_padded,N,Lcp, MASK, Lt, Ld, train_block);
+
 
 %Send the ofdm stream through the channel
 rxOfdmStream = fftfilt(channel,ofdmStream);
 
 rxOfdmStream = awgn(rxOfdmStream,SNR,'measured');
-
 %ofdm demodulation
-rxQamStream = ofdm_demod(rxOfdmStream, N, Lcp, length(qamStream), channel, MASK, 0);
 
-bit_seq = qam_demod(rxQamStream,M,length(bitStream));
-BER = ber(bit_seq,bitStream );
+[rxQamStream, CHANNELS] = ofdm_demod(rxOfdmStream, N, Lcp, length(qamStream), MASK, train_block,Lt,Ld, nbPackets);
 
 
-
-
-%{
 %convert the data back to a bitstream
 j  = 1;
 bitMatrix = [];
-while j <= length(qamStream)
+while j <= length(rxQamStream)
     for i = 1:size(M_vary,1)
         M = M_vary(i);
         Nq = log2(M);
-        if M ~=1 && j == length(qamStream)
+        if M ~=1 && j == length(rxQamStream)
             nb_lastBits = streamLength - length(bitMatrix);
             lastBits_padded = qam_demod(rxQamStream(j), M, Nq);
             bitMatrix = [bitMatrix; lastBits_padded(end - nb_lastBits + 1:end)];
-        elseif M ~= 1 && j < length(qamStream)
+        elseif M ~= 1 && j < length(rxQamStream)
             bitMatrix = [bitMatrix ; qam_demod(rxQamStream(j),M,Nq)];
         end
     j = j+1;
 
     end
 end
-%}
 
-else
-    M = 2^8;
-    Nq = 8
-    Lt = 7;
-    Ld = 10;
-    train_bits = randi([0 1],Nq*(N/2-1),1); % Generate a random vector of bits
-    train_block = qam_mod(train_bits,M); % QAM modulate -> (N/2-1) rijen
-    
-
-   qam_stream = qam_mod(bitStream,M);
-   [odfm_stream,nPack] = ofdm_mod(qam_stream,N,Lcp,MASK,Lt, Ld, train_block);
-    
-   rxOfdmStream = fftfilt(channel,odfm_stream);
-   rxOfdmStream = awgn(rxOfdmStream,SNR,'measured');
-
-   [qam_seq,channels] = ofdm_demod(rxOfdmStream,N,Lcp,length(qam_stream),MASK, train_block,Lt,Ld,nPack);
-
-   bit_seq = qam_demod(y,M,length(bitStream));
-   BER = ber(bit_seq,bitStream );
-
-
-
-end
 end
