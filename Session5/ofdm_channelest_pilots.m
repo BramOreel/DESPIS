@@ -22,8 +22,8 @@ H_full = [0;received_pilots ;0; flipud(conj(received_pilots))];
 
 
 h_time = ifft(H_full,N);
-%remove unwanted tail
-%h_time(L+1:end) = 0;
+%remove unwanted tail, Windowing function
+h_time(L+1:end) = 0;
 %Convert back to the frequency domain
 H_upsampled = fft(h_time,N);
 H_est = H_upsampled(1:N/2-1)./transmitted_pilots;

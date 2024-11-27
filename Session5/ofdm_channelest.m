@@ -8,11 +8,11 @@ h = load('channel_session5.mat').h;
 
 N = 2048; % Total number of symbols in a single OFDM frame, i.e., the DFT size
 Lcp = 300; % Cyclic prefix length [samples]
-M = 64; % QAM constellation size
+M = 16; % QAM constellation size
 SNR = inf; % SNR of transmission [dB]
 
 accoustic_transmission = 0; % If 1 acoustic transmission occurs, if 0 a simulated transmission.
-pilot_tones = 0;            % If 1 pilot tones are used, if 0 the full channel is estimated
+pilot_tones = 1;            % If 1 pilot tones are used, if 0 the full channel is estimated
 
 
 
@@ -98,7 +98,7 @@ rx_bits = qam_demod(qam_seq,M,length(train_bits));
 BER = ber(rx_bits,train_bits);
 
 
-CHANNELS = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
+CHANNELS = [0;CHANNELS(:,1) ;0; flipud(conj(CHANNELS(:,1)))];
 h_est = ifft(CHANNELS,N);
 
 %% Plot (real and) estimated channel.

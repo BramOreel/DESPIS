@@ -5,13 +5,13 @@ clear; close all; clc;
 %% Parameters.
 N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
 Lcp = 300; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
-Nq = 4;
+Nq = 3;
 M = 2^Nq; %  constellation size.
 SNR = 15; % SNR of transmission [dB].
 Lt = 7; % Number of training frames.
-Ld = 19; % Number of data frames.
+Ld = 2; % Number of data frames.
 fs = 16000; % Sampling frequency [Hz].
-channel = "simulation"; % acoustic or simulation
+channel = "acoustic"; % acoustic or simulation
 
 %% Construct QAM symbol stream.
 % Data blocks
