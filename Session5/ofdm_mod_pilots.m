@@ -36,7 +36,7 @@ while i <= length(QAM_seq)
        tonevec = trainblock.*mask;
        for j = 1:N/2-1
             if tonevec(j) == 0
-                tonevec(j) = QAM_seq(i);
+                tonevec(j) = 0;
                 i = i +1;
             end
        end

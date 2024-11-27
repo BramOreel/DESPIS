@@ -17,16 +17,20 @@ function [H_est] = ofdm_channelest_pilots(received_pilots, transmitted_pilots, N
 
 %The time domain signal needs to be upsampled in order to fill in the zeros
 %perform an ifft to do this
-H_full = [0;received_pilots ;0; flipud(conj(received_pilots))];
+H_est = received_pilots./transmitted_pilots;
+
+
+H_full = [0; H_est ;0; flipud(conj(H_est))];
 
 
 
 h_time = ifft(H_full,N);
 %remove unwanted tail
-%h_time(L+1:end) = 0;
+h_time(L+1:end) = 0;
+
 %Convert back to the frequency domain
 H_upsampled = fft(h_time,N);
-H_est = H_upsampled(1:N/2-1)./transmitted_pilots;
+H_est = H_upsampled(1:N/2-1);
 
 
 

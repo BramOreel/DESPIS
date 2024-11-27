@@ -12,7 +12,7 @@ M = 64; % QAM constellation size
 SNR = inf; % SNR of transmission [dB]
 
 accoustic_transmission = 0; % If 1 acoustic transmission occurs, if 0 a simulated transmission.
-pilot_tones = 0;            % If 1 pilot tones are used, if 0 the full channel is estimated
+pilot_tones = 1;            % If 1 pilot tones are used, if 0 the full channel is estimated
 
 
 

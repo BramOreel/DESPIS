@@ -105,21 +105,40 @@ QAM_matrix = fft(OFDM_matrix,N);
 %Try to estimate the channel
 QAM_matrix_usefull = QAM_matrix(2:(N/2),:); 
 
-CHANNELS = QAM_matrix_usefull(:,1)./trainblock(:,1);
-x = repmat(CHANNELS,1,size(QAM_matrix_usefull,2));
+
+%Determine the channel equalization for each packet
 
 
 
-% Apply channel equalisation (you can ignore this until exercise 4.2.3)
-    QAM_matrix = QAM_matrix_usefull./x;
-    QAM_matrix(isinf(QAM_matrix)) = 0;
-    QAM_matrix(isnan(QAM_matrix)) = 0;
+
+i = 1;
+CHANNELS = [];
+QAM_matrix = [];
+
+
+while i <= nbPackets*(Lt+Ld)
+    QAM_matrix_train = QAM_matrix_usefull(:,i:i+Lt-1);
+    QAM_matrix_train = sum(QAM_matrix_train,2)./Lt;
+
+    QAM_matrix_data  = QAM_matrix_usefull(:,i+Lt:i+Lt+Ld-1);
+    CHANNEL = QAM_matrix_train(:,1)./trainblock(:,1);
+
+    Equaliser = repmat(CHANNEL,1,Ld);
+
+
+    QAM_matrix = [QAM_matrix, QAM_matrix_data./Equaliser];
+    CHANNELS = [CHANNELS,CHANNEL];
+
+    i = i + Ld + Lt;
+
+end
+
+QAM_matrix(isinf(QAM_matrix)) = 0;
+QAM_matrix(isnan(QAM_matrix)) = 0;
 
 
 
-% Remove the redundant parts of QAM_matrix
-%QAM_matrix = QAM_matrix(2:(N/2),:);   
-
+ 
 
 %remove rows that are zero of the QAM matrix we know which rows these are
 %because of the freq mask ON_OFF_mask

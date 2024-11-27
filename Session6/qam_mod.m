@@ -26,7 +26,7 @@ assert( mod(length(bit_seq),sum(N))==0,'Bit sequence should contain a number of 
 
 %% Call to qammod() to obtain the M-ary QAM symbols
 QAM_seq = qammod(bit2int(bit_seq,N),M);
-Pavg = 1/M*sum(abs(QAM_seq).^2,"all");
+%Pavg = 1/M*sum(abs(QAM_seq).^2,"all");
 QAM_seq = QAM_seq;
 
 end
