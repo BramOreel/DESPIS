@@ -110,9 +110,6 @@ QAM_matrix_usefull = QAM_matrix(2:(N/2),:);
 
 %Determine the channel equalization for each packet
 
-
-
-
 i = 1;
 CHANNELS = [];
 QAM_matrix = [];
@@ -139,9 +136,6 @@ QAM_matrix(isinf(QAM_matrix)) = 0;
 QAM_matrix(isnan(QAM_matrix)) = 0;
 
 
-
- 
-
 %remove rows that are zero of the QAM matrix we know which rows these are
 %because of the freq mask ON_OFF_mask
 QAM_matrix_red = [];
@@ -163,8 +157,9 @@ end
 data_seq = QAM_matrix(:);
 data_seq = data_seq(1:streamLength);
 
+%%
 
-elseif nargin == 7
+elseif nargin == 7 %sessie 4
 % Reshape the received OFDM sequence (serial to parallel conversion)
 OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
 
@@ -174,7 +169,6 @@ OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
 
 % Apply fft operation
 QAM_matrix = fft(OFDM_matrix,N);
-
 
 
 if equalization
@@ -211,9 +205,35 @@ data_seq = QAM_matrix(:);
 data_seq = data_seq(1:streamLength);
 
 
+else
+%% Perform OFDM demodulation
+% Reshape the received OFDM sequence (serial to parallel conversion)
+OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
 
+% Remove the cyclic prefix (you can ignore this until exercise 3.2.4)
+OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
+
+% Apply fft operation
+QAM_matrix = fft(OFDM_matrix);
+
+% Remove the redundant parts of QAM_matrix
+QAM_matrix = QAM_matrix(2:(N/2),:);
+
+% Supply streamLength number of symbols (you can ignore this until exercise 4.2)
+data_seq = QAM_matrix(:);
+
+epsilon = 10^-10;  % Smallest positive normalized number
+
+% Loop backwards through the array to find the last valid element
+idx = length(data_seq);  % Start at the last element
+while idx > 0 && (abs(real(data_seq(idx))) < epsilon && abs(imag(data_seq(idx))) < epsilon)
+    idx = idx - 1;  % Move backwards to the previous element
 end
 
+% Truncate the array up to the last valid element
+data_seq = data_seq(1:idx);
+
+end
 
 
 end

@@ -8,8 +8,8 @@ Lcp = 600; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i t
 Nq = 4;
 M = 2^Nq; %  constellation size.
 SNR = 15; % SNR of transmission [dB].
-Lt = 7; % Number of training frames.
-Ld = 19; % Number of data frames.
+Lt = N; % Number of training frames. (<=N)
+Ld = N; % Number of data frames.(<=N)
 fs = 16000; % Sampling frequency [Hz].
 channel = "simulation"; % acoustic or simulation
 
@@ -35,19 +35,22 @@ smoothing_factor = .99; % Smoothing factor for simulated channel (see simulate_c
 % Channel estimation based on a dummy transmission for bitloading
 
 train_bits = randi([0 1],Nq*(N/2-1),1); % Generate a random vector of bits
-train_block = qam_mod(train_bits,M); % QAM modulate
+train_block = qam_mod(train_bits,M); % QAM modulate -> (N/2-1) rijen
 
 %if the bitloading flag in toggled, we will perform two transmissions
 %Basically just the train block about 10 times (fs*2/N blocks)
-[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, floor(fs*2/N),0,train_block); %probleem: Ld = 0 geeft nbPackets = Inf
+dummyBitStream = ones(1,Ld)';
+dummy_qam = qam_mod(dummyBitStream,M);
+[trainStream, nbPackets] = ofdm_mod(dummy_qam,N,Lcp,ON_OFF_mask, Lt,Ld,train_block); %x = trainStream
+%[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, floor(fs*2/N),0,train_block); %probleem: Ld = 0 geeft nbPackets = Inf
 %[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, Lt,Ld,train_block);
 
 if bitloading_flag
 
     % Dummy transmission
     if channel == "simulation"
-        aligned_Rx = simulate_channel(trainStream, Nswitch,'channel_session6.mat',smoothing_factor);
-        aligned_Rx = awgn(aligned_Rx,SNR,'measured');
+        aligned_Rx = simulate_channel(trainStream, Nswitch,'channel_session6.mat',smoothing_factor); %h*x
+        aligned_Rx = awgn(aligned_Rx,SNR,'measured'); %y = h*x+n
     else
         
         duration = 1;
@@ -62,10 +65,6 @@ if bitloading_flag
         Rx = simout.signals.values(:,1);
         aligned_Rx = alignIO(Rx,fs);
     end
-
-    % Extract the estimated channels
-    [~, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, 0,ones(1,N/2-1),train_block,floor(fs*2/N),0,1);
-    %[~, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, 0,ones(1,N/2-1),train_block,Lt,Ld,1);
     if bitloading_type == "on-off"
         % Only keep bins of high energy
         H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
@@ -83,49 +82,27 @@ if bitloading_flag
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
 
     elseif bitloading_type == "adaptive"
-        H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
-        ch = ifft(H);
-        x_hat = fftfilt(ch,trainStream);
-        noise_signal = aligned_Rx - x_hat;
-        
-        NOISE = fft(noise_signal,N); %ruis is een reeel signaal
-        NOISE = NOISE(1:N/2+1);
-        NOISE = (1/(fs*N)) * abs(NOISE).^2;
-        NOISE(2:end-1) = 2*NOISE(2:end-1); %PSD van noise
-        NOISE = NOISE(2:end-1);
+        [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(dummy_qam),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
 
-        H = CHANNELS;        
-        T= 10;
+        H = CHANNELS;
+        %SNR in het frequentiedomein
+        %H, Y = aligned_RX, X = dummy_qam
         
-        SNR_per_bin = (abs(H).^2)./(T*NOISE);
-        SNR_tot=sum((abs(H).^2)*(1/(N*fs)),"all")/sum(NOISE,"all");
-        
-        %totale SNR
-
-        Pch = ch.^2; % Signaalvermogen
-        Pn = noise_signal(1:N).^2; % Ruisvermogen
-        SNR_calculated_dB = 10 * log10(Pch ./ Pn);
-        SNR_calculated_dB=mean(SNR_calculated_dB);
-        %{
-        % Noise in frequentiedomein per frame (gemiddelde over frames)
-        noise_power = zeros(N/2-1, 1);
-        for frame = 1:Lt
-            % Extract frame (excl. cyclic prefix)
-            frame_start = (frame-1)*(N+Lcp) + Lcp + 1;
-            frame_end = frame_start + N - 1;
-            frame_signal = noise_signal(frame_start:frame_end);
-
-            % FFT van frame om noise per frequentiebin te bepalen
-            frame_noise_fft = fft(frame_signal, N);
-            noise_power = noise_power + abs(frame_noise_fft(2:N/2)).^2; % Gemiddeld noisevermogen
+        verschil = abs(length(H)-length(dummy_qam));
+        if length(dummy_qam) < length(H)
+            dummy_qam = [dummy_qam; zeros(verschil,size(dummy_qam,2))];
+            aligned_RX = [aligned_RX; zeros(verschil,size(aligned_RX,2))];
+        elseif length(dummy_qam) > length(H)
+            H = [H;zeros(verschil,size(H,2))];
         end
-        noise_power = noise_power / Lt; % Gemiddeld over alle trainingsframes
-        %}
-
-        %T = 1;
-       
-
-        %SNR_per_bin = H_abs.^2 ./ (T*noise_power); % SNR op basis van kanaal en noise, zou ongeveer 31.62 moeten zijn
+        NOISE = aligned_RX - H.*dummy_qam; 
+        PSDn = (abs(NOISE).^2)/(N*fs);
+        
+        
+         
+        T = 10;
+        
+        SNR_per_bin = (abs(H).^2)./(T*PSDn);
 
         [sorted_SNR, sorted_indices] = sort(SNR_per_bin, 'descend');
         num_active_tones = ceil(BWusage / 100 * (N/2-1));
@@ -135,8 +112,7 @@ if bitloading_flag
         active_tones(used_indices) = 1;
         
         %Shannon
-        b_mat = floor(log2(1+ SNR_per_bin));
-        b_mat = b_mat.*active_tones; 
+        b_mat = floor(log2(1+ SNR_per_bin)); 
         for i=1:length(active_tones)
             if b_mat(i)>max_Nq
                 b_mat(i) = max_Nq;
@@ -144,9 +120,21 @@ if bitloading_flag
         end
 
         M_vary = 2.^b_mat;     % Constellation sizes
-     
-        Rx_bitstream = ofdm_adaptive_bitloading(train_bits,ch,N,Lcp,M_vary,SNR_calculated_dB,active_tones);
 
+        H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
+        channel = ifft(H);      
+        
+        Rx_bitstream = ofdm_adaptive_bitloading(bitStream,N, Lcp,channel,SNR, M_vary,active_tones, Lt, Ld, train_block);
+        BER = ber(Rx_bitstream,bitStream );
+
+        % Construct image from bitstream
+        imageRx = bitstreamtoimage(Rx_bitstream, imageSize, bitsPerPixel);
+
+        % Plot images
+        figure
+        subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
+        subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
+        disp(BER);
 
         %Noise bepalen
         %M bepalen

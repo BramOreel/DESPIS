@@ -107,9 +107,6 @@ for k = 1:length(ON_OFF_mask)
 end
 
 
-
-
-
 QAM_matrix = QAM_matrixON;
 
 
