@@ -5,13 +5,13 @@ clear; close all; clc;
 %% Parameters.
 N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
 Lcp = 300; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
-Nq = 3;
+Nq = 4;
 M = 2^Nq; %  constellation size.
-SNR = 20; % SNR of transmission [dB].
-Lt = 10; % Number of training frames.
+SNR = 15; % SNR of transmission [dB].
+Lt = 7; % Number of training frames.
 Ld = 5; % Number of data frames.
 fs = 16000; % Sampling frequency [Hz].
-channel = "simulation"; % acoustic or simulation
+channel = "acoustic"; % acoustic or simulation
 T = 10;
 
 %% Construct QAM symbol stream.
@@ -25,8 +25,8 @@ streamLength = length(bitStream);
 % Bitloading
 ON_OFF_mask = ones(N/2-1,1); % Default all bins to one for regular transmission
 bitloading_flag = 1; % If 1 then on-off/adaptive bitloading is enabled.
-bitloading_type = "adaptive"; % on-off or adaptive 
-BWusage = 80; % Fraction of bins to use for on-off bitloading
+bitloading_type = "on-off"; % on-off or adaptive 
+BWusage = 60; % Fraction of bins to use for on-off bitloading
 Nswitch = (Lt+Ld)*(N+Lcp); % The simulated channel changes every Nswitch number of samples.
 smoothing_factor = .99; % Smoothing factor for simulated channel (see simulate_channel.m)
 

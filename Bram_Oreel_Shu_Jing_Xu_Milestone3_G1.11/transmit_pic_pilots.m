@@ -8,7 +8,7 @@ Lcp = 300; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i t
 Nq = 3;
 M = 2^Nq; %  constellation size.
 SNR = 20;% % SNR of transmission [dB].
-Lt = 5; % Number of training frames.
+Lt = 10; % Number of training frames.
 Ld = 5; % Number of data frames.
 Nswitch = (Lt+Ld)*(N+Lcp); % The simulated channel changes every Nswitch number of samples.
 smoothing_factor = .99; % Smoothing factor for simulated channel (see simulate_channel.m)
@@ -57,7 +57,7 @@ rx_bits = qam_demod(rx_qam,M,streamLength);
 
 %% Bit error rate
 BER = ber(rx_bits,bitStream);
-
+disp("BER: " + BER)
 imageRx = bitstreamtoimage(rx_bits, imageSize, bitsPerPixel);
 
 % Plot images
