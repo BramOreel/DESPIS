@@ -38,14 +38,14 @@ H_full = [0; H_zeros ;0; flipud(conj(H_zeros))];
 
 h_time = ifft(H_full);
 %remove unwanted tail
-h_time = h_time(1:N/2);
+h_time = h_time(1:L+1);
 
 %Convert back to the frequency domain
 H_upsampled = fft(h_time,N);
 H_est2 = H_upsampled(2:N/2);
 
 %We get the same shape here but not the same amplitude
-scaling_fac = max(H_est)/max(H_est2);
+scaling_fac = 1; %H_est(N/8)/H_est2(N/8);
 H_est2 = H_est2.*scaling_fac;
 
 
