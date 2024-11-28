@@ -62,7 +62,7 @@ if bitloading_flag
         Rx = simout.signals.values(:,1);
         aligned_Rx = alignIO(Rx,fs);
     end
-    [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(train_block),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
+    [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(trainblock),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
 
     if bitloading_type == "on-off"
         % Only keep bins of high energy
@@ -82,18 +82,19 @@ if bitloading_flag
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
 
     elseif bitloading_type == "adaptive"
+        train_block = train_block;
         H = CHANNELS;
         %SNR in het frequentiedomein
         
-        verschil = abs(length(H)-length(train_block));
-        if length(train_block) < length(H)
-            train_block = [train_block; zeros(verschil,size(train_block,2))];
+        verschil = abs(length(H)-length(dummy_qam));
+        if length(dummy_qam) < length(H)
+            dummy_qam = [dummy_qam; zeros(verschil,size(dummy_qam,2))];
             aligned_RX = [aligned_RX; zeros(verschil,size(aligned_RX,2))]; %padden met zeros als dummy_qam niet lang genoeg is, maar dit geeft meer BER!
-        elseif length(train_block) > length(H)
+        elseif length(dummy_qam) > length(H)
             H = [H;zeros(verschil,size(H,2))];
         end
         
-        NOISE = aligned_RX - H.*train_block; 
+        NOISE = aligned_RX - H.*dummy_qam; 
         PSDn = (abs(NOISE).^2)/(N*fs);
 
         T = 10;
@@ -130,7 +131,7 @@ if bitloading_flag
         % Plot images
         figure
         subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
-        subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title('Received image'); drawnow;
+        subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
         disp(BER);
 
         %Noise bepalen
