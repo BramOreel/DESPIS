@@ -139,12 +139,16 @@ while idx <= nbPackets
      
 
         figure(1);
+        
         subplot(2,2,1);
         plot(h_est);
         ylim([-0.05 0.05]); % plot the channel impulse response
         xlim([10 150]);
         xlabel('')
         ylabel('')
+        title("channel impulse respons")
+        xlabel('Time [samples]')
+        ylabel('Impulse response [arb.]')
         %xlim([0 150]);
         
         
@@ -152,9 +156,13 @@ while idx <= nbPackets
         plot(abs(freq_res_MASK).^2); % plot the channel frequency response
         xlabel('')
         ylabel('')
-
+        ylim([0 0.03])
+        title("channel frequency response")
+        xlabel('Frequency [Hz]')
+        ylabel('Magnitude response [dB]')
         subplot(2,2,2);
         colormap(colorMap); image(imageData); axis image; title('Original image'); % the original image
+
         
         subplot(2,2,4);
         demoded_bitstream = rx_bits(1:Nq*(N/2-1)*Ld*idx); % the bit stream that is received by the receiver so far
@@ -173,10 +181,3 @@ end
 % A static or slowly changing impulse response and frequency response indicate a stable channel, suitable for high-speed communication.
 % Rapid time variations suggest a challenging environment, such as a mobile user or dynamic obstacles, requiring robust channel estimation and equalization techniques.
 % A frequency response with deep fading notches implies that certain subcarriers may experience severe attenuation, necessitating error correction or adaptive modulation schemes.
-
-
-
-
-
-
-

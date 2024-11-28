@@ -4,12 +4,12 @@ clear; close all; clc;
 
 %% Parameters.
 N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
-Lcp = 700; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
+Lcp = 300; % Cyclic prefix length [samples]. Lcp has to be bigger than N/2-1 i think
 Nq = 4;
 M = 2^Nq; %  constellation size.
 SNR = 15; % SNR of transmission [dB].
-Lt = N; % Number of training frames. 
-Ld = 2*N; % Number of data frames.
+Lt = 5; % Number of training frames. 
+Ld = 5; % Number of data frames.
 fs = 16000; % Sampling frequency [Hz].
 channel = "simulation"; % acoustic or simulation
 
@@ -26,7 +26,7 @@ streamLength = length(bitStream);
 % Bitloading
 ON_OFF_mask = ones(1,N/2-1); % Default all bins to one for regular transmission
 bitloading_flag = 1; % If 1 then on-off/adaptive bitloading is enabled.
-bitloading_type = "adaptive"; % on-off or adaptive 
+bitloading_type = "on-off"; % on-off or adaptive 
 BWusage = 60; % Fraction of bins to use for on-off bitloading
 Nswitch = (Lt+Ld)*(N+Lcp); % The simulated channel changes every Nswitch number of samples.
 smoothing_factor = .99; % Smoothing factor for simulated channel (see simulate_channel.m)
@@ -39,11 +39,11 @@ train_block = qam_mod(train_bits,M); % QAM modulate -> (N/2-1) rijen
 
 %if the bitloading flag in toggled, we will perform two transmissions
 %Basically just the train block about 10 times (fs*2/N blocks)
-dummyBitStream = ones(1,Ld)';
-dummy_qam = qam_mod(dummyBitStream,M);
-[trainStream, nbPackets] = ofdm_mod(dummy_qam,N,Lcp,ON_OFF_mask, Lt,Ld,train_block); %x = trainStream
+%dummyBitStream = ones(1,Nq*Ld)';
+%dummy_qam = qam_mod(dummyBitStream,M);
+%[trainStream, nbPackets] = ofdm_mod(dummy_qam,N,Lcp,ON_OFF_mask, Lt,Ld,train_block); %x = trainStream
 %[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, floor(fs*2/N),0,train_block); %probleem: Ld = 0 geeft nbPackets = Inf
-%[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, Lt,Ld,train_block);
+[trainStream, nbPackets] = ofdm_mod(train_block,N,Lcp,ON_OFF_mask, Lt,Ld,train_block);
 
 if bitloading_flag
 
@@ -67,7 +67,7 @@ if bitloading_flag
     end
     if bitloading_type == "on-off"
         % Only keep bins of high energy
-        [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(dummy_qam),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
+        [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(train_block),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
         H = [0;CHANNELS ;0; flipud(conj(CHANNELS))];
         H_abs = abs(H);
 
@@ -84,7 +84,7 @@ if bitloading_flag
         ON_OFF_mask = frequency_mask; % ON-OFF mask with 1 denoting the usage of a bin.
 
     elseif bitloading_type == "adaptive"
-        
+        dummy_qam = train_block;
         [aligned_RX, CHANNELS] = ofdm_demod(aligned_Rx,N,Lcp, length(dummy_qam),ones(1,N/2-1),train_block,Lt,Ld,nbPackets);
 
         H = CHANNELS;
@@ -98,6 +98,7 @@ if bitloading_flag
         elseif length(dummy_qam) > length(H)
             H = [H;zeros(verschil,size(H,2))];
         end
+        
         NOISE = aligned_RX - H.*dummy_qam; 
         PSDn = (abs(NOISE).^2)/(N*fs);
 
@@ -125,6 +126,8 @@ if bitloading_flag
         ch = load('channel_session6.mat').h';
         
         Rx_bitstream = ofdm_adaptive_bitloading(bitStream,N, Lcp,ch,SNR, b_mat.',active_tones, Lt, Ld, train_block);
+
+        
         BER = ber(Rx_bitstream,bitStream );
 
         % Construct image from bitstream
@@ -138,7 +141,7 @@ if bitloading_flag
 
         %Noise bepalen
         %M bepalen
-
+        
         
 
     end
@@ -146,7 +149,9 @@ end
 
 
 
+
 %% OFDM modulation
+if bitloading_type == "on-off"
 [ Tx, nbPackets ] = ofdm_mod(qamStream,N,Lcp,ON_OFF_mask,Lt,Ld,train_block);
 
 %% Transmit OFDM sequence.
@@ -177,7 +182,7 @@ scatterplot(rx_qam);
 rx_bits = qam_demod(rx_qam,M,streamLength);
 
 %% Bit error rate
-%{
+
 BER = ber(rx_bits,bitStream );
 
 % Construct image from bitstream
@@ -188,6 +193,6 @@ figure
 subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
 subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
 disp(BER);
-%}
+end
 
 
