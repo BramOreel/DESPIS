@@ -2,19 +2,36 @@
 %% Cleanup
 clc; clear; close all;
 
+
+
+
+
+
+
+
 %% Parameters.
-M =; % QAM constelllation size
-nbQAMsymb =; % Number of QAM symbols 
-Hk = ; % Channel to consider (Only one frequency bin will be considered here)
-alpha = ; % Regularisation constant
-SNR = ; % Signal-to-noise-ratio [dB]
+M =8; % QAM constelllation size
+Nq = log2(M);
+nbQAMsymb =0; % Number of QAM symbols 
+Hk = -1.3 + 5i; % Channel to consider (Only one frequency bin will be considered here)
+alpha = 0; % Regularisation constant
+SNR = 30; % Signal-to-noise-ratio [dB]
 
 %% Construct data sequences.
-nbBits = ; % Number of bits required to generate nbQAMsymb symbols
-bitstream = randi(); % bitstream of nbBits bits
-Xk = qam_mod(); % QAM symbol sequence
-Yk = ; % REcorded QAM symbol sequence
+nbBits =0 ; % Number of bits required to generate nbQAMsymb symbols
+bitstream = randi([0 1],Nq*1000,1); % bitstream of nbBits bits
+Xk = qam_mod(bitstream,M); % QAM symbol sequence
+Yk = Hk.*Xk; % REcorded QAM symbol sequence
 iN = 1; % Counter of stepsizes
+
+
+
+%% biem
+
+
+
+
+
 
 for mu = [] % List of stepsizes
     % NMLS filter implementation.
