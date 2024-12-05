@@ -15,7 +15,7 @@ Nq = log2(M);
 constellation = (-Nq+1:2:Nq-1) + 1j*(-Nq+1:2:Nq-1)';
 nbQAMsymb =0; % Number of QAM symbols 
 Hk = -1.3 + 5i; % Channel to consider (Only one frequency bin will be considered here)
-alpha = 10^-2; % Regularisation constant
+alpha = 10^-3; % Regularisation constant
 SNR = 30; % Signal-to-noise-ratio [dB]
 
 N_filter = 1; %number of tones in the filter
@@ -37,7 +37,7 @@ iN = 1; % Counter of stepsizes
 
 %% Try to estimate wk as 1/Hk
 
-for mu = [0.1 0.5 1] % List of stepsizes
+for mu = [0.2] % List of stepsizes
     % NMLS filter implementation.
     % Initialise filters, reconstructed transmitted signal and error
     delta = 0.2;
@@ -53,7 +53,7 @@ for mu = [0.1 0.5 1] % List of stepsizes
         % Calculate error signal.
         Ek(n) =  Xk(n) - rec_Xk(n) ;
         % Update filter.
-        w(n+1) = w(n) + mu/(alpha + Yk_noise(n)'*Yk_noise(n))*Yk_noise(n)*(Xk(n) - Yk_noise(n)'*w(n));
+        w(n+1) = w(n) + mu/(alpha + conj(Yk_noise(n))*Yk_noise(n))*Yk_noise(n)*conj((Xk(n) - conj(w(n))*Yk_noise(n)));
     end
      
     legendCell{iN} = num2str(mu,'mu=% .2f');
