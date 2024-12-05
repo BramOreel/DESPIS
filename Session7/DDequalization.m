@@ -12,9 +12,9 @@ clc; clear; close all;
 %% Parameters.
 M =4; % QAM constelllation size
 Nq = log2(M);
-constellation = (-Nq+1:2:Nq-1) + 1j*(-Nq+1:2:Nq-1)';
+
 nbQAMsymb =0; % Number of QAM symbols 
-Hk = -1.3 + 5i; % Channel to consider (Only one frequency bin will be considered here)
+Hk = -0.7 + 0.8i; % Channel to consider (Only one frequency bin will be considered here)
 alpha = 1; % Regularisation constant
 SNR = 30; % Signal-to-noise-ratio [dB]
 
@@ -29,7 +29,7 @@ nbBits = Nq*1000 ; % Number of bits required to generate nbQAMsymb symbols
 bitstream = randi([0 1],nbBits,1); % bitstream of nbBits bits
 Xk = qam_mod(bitstream,M); % QAM symbol sequence
 Yk = Hk.*Xk; % REcorded QAM symbol sequence. This is our desired signal
-Yk_noise = awgn(Yk,SNR,"measured");
+Yk = awgn(Yk,SNR,"measured");
 
 iN = 1; % Counter of stepsizes
 
@@ -37,7 +37,7 @@ iN = 1; % Counter of stepsizes
 
 %% Try to estimate wk as 1/Hk
 
-for mu = [0.02 0.1 0.2 0.5 1 5 10] % List of stepsizes
+for mu = [0.02 0.1 0.2 0.5] % List of stepsizes
     % NMLS filter implementation.
     % Initialise filters, reconstructed transmitted signal and error
     delta = 0.2;
@@ -47,13 +47,13 @@ for mu = [0.02 0.1 0.2 0.5 1 5 10] % List of stepsizes
     w(1) = (1 + delta)/conj(Hk); 
     for n = 1:length(Xk)-1
         % Apply filter.
-        estXk = conj(w(n))*Yk_noise(n);
+        estXk = conj(w(n))*Yk(n);
         % Reconstruct transmitted signal.
         rec_Xk(n) = qammod(qamdemod(estXk,M),M);
         % Calculate error signal.
-        Ek(n) =  Xk(n) - rec_Xk(n) ;
+        Ek(n) =  estXk - rec_Xk(n) ;
         % Update filter.
-        w(n+1) = w(n) + mu/(alpha + conj(Yk_noise(n))*Yk_noise(n))*Yk_noise(n)*conj((Xk(n) - conj(w(n))*Yk_noise(n)));
+        w(n+1) = w(n) + mu/(alpha + conj(Yk(n))*Yk(n))*Yk(n)*conj((Xk(n) - conj(w(n))*Yk(n)));
         if(abs(w(n+1)) > 10^30)
             break
         end
@@ -69,6 +69,11 @@ title('NMLS estimation error.');
 xlabel('Iteration'); ylabel('Error magnitude');
 hold on
 legend(legendCell)
+
+%We expect the value to ossicilate because our step size is rigid (should
+%be dynamic)
+
+%Think about question 5 i guess
 
 
 end
