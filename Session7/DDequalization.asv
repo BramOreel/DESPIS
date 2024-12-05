@@ -34,14 +34,13 @@ Yk = awgn(Yk,SNR,"measured");
 
 %% biem
 
-for mu = [0.5; 1] % List of stepsizes
+for mu = [0.5] % List of stepsizes
     % NMLS filter implementation.
     % Initialise filters, reconstructed transmitted signal and error
     
     w = zeros(length(Xk),1); 
     rec_Xk = zeros(1,length(Xk)); Ek = zeros(1,length(Xk));
-    delta = 0.2;
-    w(1) = (1+delta)/conj(Hk); 
+    w(1) = ; 
     for n = 1:length(Xk)-1
         % Apply filter.
         estXk = ;
@@ -50,7 +49,7 @@ for mu = [0.5; 1] % List of stepsizes
         % Calculate error signal.
         Ek(n) = ;
         % Update filter.
-        w(n+1) = w(n)+mu/(alpha + );
+        w(n+1) = ;
     end
      
     legendCell{iN} = num2str(mu,'mu=% .2f');
