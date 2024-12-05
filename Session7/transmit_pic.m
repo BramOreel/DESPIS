@@ -8,12 +8,12 @@ N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
 Lcp = 300; % Cyclic prefix length [samples].
 M = 16; % QAM constellation size.
 Nq = log2(M);
-SNR = inf; % SNR of transmission [dB].
+SNR = 30; % SNR of transmission [dB].
 Lt = 10; % Number of training frames.
 fs = 16000; % Sampling frequency [Hz].
 channel = "simulation"; % simulation or acoustic
 
-mu = 1; % NLMS stepsize
+mu = 0.02; % NLMS stepsize
 alpha = 1; % NLMS regularization
 type = "nlms";
 Nswitch = (Lt)*(N+Lcp); % The simulated channel changes every Nswitch number of samples.
