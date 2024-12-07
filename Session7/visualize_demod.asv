@@ -109,11 +109,85 @@ rx_bits = qam_demod(rx_qam,M,streamLength);
 %% Bit error rate
 BER = ber(rx_bits,bitStream);
 
-% Construct image from bitstream
-imageRx = bitstreamtoimage(rx_bits, imageSize, bitsPerPixel);
 
-% Plot images
-figure
-subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
-subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
-disp(BER);
+
+t_packet = length(rx_qam*Nq)/(fs*nbPackets); %for LD + Lt packets; % Duration of one packet [s]
+%refresh rate should be quicker now nbPackets ->
+
+idx = 1;
+while idx <= nbPackets+1
+    try
+        CHANNEL = CHANNELS(:,idx);
+        CHANNEL_MASK = CHANNEL.*ON_OFF_mask;
+        freq_res = [0;CHANNEL ;0; flipud(conj(CHANNEL))];
+        freq_res_MASK = [0;CHANNEL_MASK ;0; flipud(conj(CHANNEL_MASK))];
+        h_est = ifft(freq_res,N);
+
+        
+
+       
+     
+
+        figure(1);
+        subplot(2,2,1);
+        plot(h_est);
+        %ylim([-0.05 0.05]); % plot the channel impulse response
+        %xlim([10 150]);
+        xlabel('')
+        ylabel('')
+        %xlim([0 150]);
+        
+        
+        subplot(2,2,3);
+        plot(abs(freq_res_MASK).^2); % plot the channel frequency response
+        xlabel('')
+        ylabel('')
+
+        subplot(2,2,2);
+        colormap(colorMap); image(imageData); axis image; title('Original image'); % the original image
+        
+        if(idx == 1)
+            subplot(2,2,4);
+            imageRx = bitstreamtoimage(0, imageSize, bitsPerPixel);
+            colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
+            drawnow;
+        else
+            subplot(2,2,4);
+            demoded_bitstream = rx_bits(1:Nq*(N/2-1)*Ld*idx);
+            imageRx = bitstreamtoimage(de, imageSize, bitsPerPixel);
+            colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
+            drawnow;
+
+
+
+        end
+
+
+
+        
+        
+
+
+         % the bit stream that is received by the receiver so far
+        
+        colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
+        drawnow;
+    catch
+        break;
+    end
+    
+    pause(t_packet);
+    idx = idx + 1;
+end
+
+% 
+% A static or slowly changing impulse response and frequency response indicate a stable channel, suitable for high-speed communication.
+% Rapid time variations suggest a challenging environment, such as a mobile user or dynamic obstacles, requiring robust channel estimation and equalization techniques.
+% A frequency response with deep fading notches implies that certain subcarriers may experience severe attenuation, necessitating error correction or adaptive modulation schemes.
+
+
+
+
+
+
+

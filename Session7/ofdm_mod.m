@@ -1,4 +1,4 @@
-function [ OFDM_seq] = ofdm_mod( QAM_seq, N, Lcp, varargin)
+function [ OFDM_seq, nbPackets] = ofdm_mod( QAM_seq, N, Lcp, varargin)
 % OFDM modulation
 %
 % INPUT:
@@ -105,6 +105,8 @@ end
 
 %Construct the matrix so that one training packet is sent, followed by the
 %data
+
+nbPackets = size(QAM_matrixON,2);
 
 QAM_matrix = zeros(N/2-1,Lt);
 for j = 1:Lt
