@@ -131,6 +131,7 @@ while idx <= nbPackets
         figure(1);
         subplot(2,2,1);
         plot(h_est);
+        title('Impulse response');
         %ylim([-0.05 0.05]); % plot the channel impulse response
         %xlim([10 150]);
         xlabel('')
@@ -140,6 +141,7 @@ while idx <= nbPackets
         
         subplot(2,2,3);
         plot(abs(freq_res_MASK).^2); % plot the channel frequency response
+        title('Frequency response');
         xlabel('')
         ylabel('')
 
