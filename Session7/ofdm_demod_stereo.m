@@ -60,7 +60,27 @@ if(Equalization == "fixed")
 
 
 elseif(Equalization == "packet")
-        disp("biem")
+        i = 1;
+    CHANNELS = [];
+    QAM_matrix = [];
+    
+    ie = nbPackets*(Lt+Ld);
+    while i <= ie
+        e = i+Lt-1;
+        QAM_matrix_train2 = QAM_matrix_usefull(:,i:e);
+        QAM_matrix_train = sum(QAM_matrix_train2,2)./Lt;
+    
+        QAM_matrix_data  = QAM_matrix_usefull(:,i+Lt:i+Lt+Ld-1);
+        CHANNEL = QAM_matrix_train(:,1)./trainblock(:,1);
+    
+        Equaliser = repmat(CHANNEL,1,Ld);
+    
+    
+        QAM_matrix = [QAM_matrix, QAM_matrix_data./Equaliser];
+        CHANNELS = [CHANNELS,CHANNEL];
+    
+        i = i + Ld + Lt;
+    end
 end
 
 QAM_matrix(isinf(QAM_matrix)) = 0;

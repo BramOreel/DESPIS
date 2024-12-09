@@ -21,7 +21,7 @@ function [ out_aligned ] = alignIO( out, fs )
 
 
 %% Align I/O
-safety_margin = 50; % Safety margin [samples]
+safety_margin = 100; % Safety margin [samples]
 
 [correlation,lags] = xcorr(out,sync_pulse,'none'); % Find cross-correlation between output and synchronisation pulse
 [~,maxIdx] = max(abs(correlation)); % Find index of maximum cross-correlation

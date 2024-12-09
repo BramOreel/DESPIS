@@ -82,7 +82,14 @@ end
 end
 
 %7.3: Calculate the a & b using the channel estimation
-[a,b] = fixed_transmitter_side_beamformer(H);
+H_transpose = H';
+H1 = [0; H_transpose(:,1) ;0; flipud(conj(H_transpose(:,1)))];
+H2 = [0; H(:,2) ;0; flipud(conj(H(:,2)))];
+
+
+h1 = ifft(H1,N);
+h2 = ifft(H2,N);
+[a,b] = fixed_transmitter_side_beamformer(h1,h2,N);
 
 %Create two QAM_matrices, one scaled with a, another scaled with b
 QAM_matrixA = QAM_matrix.*a;

@@ -16,10 +16,12 @@ alpha = 1; % NLMS regularization
 SNR = 30; % SNR of transmission 
 
 % Generate two random impulse responses, and calculate frequency response.
-h1 = rand(1,Lh); h2 = rand(1,Lh); % Impulse responses
-H =[fft(h1,N/2-1); fft(h2,N/2-1)]; % N/2-1X2 matrix containing frequency transform of h1 and h2
+h1 = rand(1,Lh)'; h2 = rand(1,Lh)'; % Impulse responses
+H1 = fft(h1,N);
+H2 = fft(h2,N);
+H =[H1(1:N/2-1) , H2(1:N/2-1)]; % N/2-1X2 matrix containing frequency transform of h1 and h2
 
-[a,b] = fixed_transmitter_side_beamformer(h1,h2,N); % to do this, we actually need an estimation of our channel first
+[a,b] = fixed_transmitter_side_beamformer(H); % to do this, we actually need an estimation of our channel first
 
 
 %% Construct QAM symbol stream.

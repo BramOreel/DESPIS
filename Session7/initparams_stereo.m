@@ -12,20 +12,27 @@ function [ simin,nbsecs,fs ] = initparams_stereo( toplay, fs )
 % fs        1X1    Sampling frequency [Hz].
 
 %% Add a synchronisation pulse
-sync_pulse = ; 
+duration = 1;
+T = 1/fs;
+t = 0:T:duration- T;
+pulse = chirp(t,100,duration,2000)';
+sync_pulse = [pulse pulse; zeros(fs,2)]; 
 
 % Append the synchronisation pulse and zeros at least equal to the length
 % of the IR before toplay and Insert 2s of silence at the beginning of toplay and 1s of silcence at the end of toplay
-toplay = ;
-
+toplay = [zeros(fs*2,2) ;sync_pulse; toplay ; zeros(fs,2)];
 % Scale toplay to be between [-1,1] 
-toplay = ;
+x_min = min(toplay);
+x_max  = max(toplay);
+x_norm = (toplay - x_min)./(x_max - x_min);
+toplay = 2*x_norm -1;
+
 
 %% Create simin
-simin = ;
+simin = toplay;
 
 %% Calculate number of seconds simin is
-nbsecs = ;
+nbsecs = size(simin,1)/fs;
 
 end
 
