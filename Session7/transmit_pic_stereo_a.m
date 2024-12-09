@@ -13,7 +13,7 @@ Ld = 0;
 Equalization = "adaptive"; % Equalization mode (see ofdm_demod_stereo.m)
 mu = 0.02;% NLMS stepsize
 alpha = 1; % NLMS regularization
-SNR = inf; % SNR of transmission 
+SNR = 30; % SNR of transmission 
 
 % Generate two random impulse responses, and calculate frequency response.
 h1 = rand(1,Lh); h2 = rand(1,Lh); % Impulse responses
@@ -48,8 +48,15 @@ Rx = awgn(Rx,SNR);
 [rec_qamStream, CHANNELS] = ofdm_demod_stereo(Rx,N,Lcp,train_frame,Lt,Ld,M,nbPackets,"fixed",mu,alpha);
 
 %% QAM demodulation.
-rx_bits = qam_demod();
+rx_bits = qam_demod(rec_qamStream,M,streamLength);
 
 %% Calculate BER
-BER = ber( )
-%}
+BER = ber(rx_bits,bitStream );
+
+% Construct image from bitstream
+imageRx = bitstreamtoimage(rx_bits, imageSize, bitsPerPixel);
+
+figure
+subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
+subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
+disp(BER);

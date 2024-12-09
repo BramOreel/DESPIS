@@ -26,5 +26,52 @@ function [ data_seq, CHANNELS] = ofdm_demod_stereo( OFDM_seq, N, Lcp, trainblock
 % data_seq      T3X1            QAM sequence of T3 symbols.
 % CHANNELS      N/2-1XP         Frequency domain estimated combined channel for each 1..P. 
 
+pad = abs(mod(length(OFDM_seq),N+Lcp)-(N+Lcp));
+if pad == (N+Lcp)
+    pad =0;
+end
+OFDM_seq = [OFDM_seq;zeros(pad,1)];
+% Reshape the received OFDM sequence (serial to parallel conversion)
+OFDM_matrix = reshape(OFDM_seq,N+Lcp,[]);
+
+% Remove the cyclic prefix (you can ignore this until exercise 3.2.4)
+OFDM_matrix = OFDM_matrix(Lcp+1:end, :);
+
+% Apply fft operation
+QAM_matrix = fft(OFDM_matrix,N);
+
+%These values we actually need
+QAM_matrix_usefull = QAM_matrix(2:(N/2),:); 
+
+if(Equalization == "fixed")
+    CHANNELS = [];
+    QAM_matrix = [];
+
+    QAM_matrix_train = QAM_matrix_usefull(:,1:Lt);
+    QAM_matrix_train = sum(QAM_matrix_train,2)./Lt;
+    QAM_matrix_data  = QAM_matrix_usefull(:,Lt+1:end);
+
+    CHANNEL = QAM_matrix_train(:,1)./trainblock(:,1);
+    CHANNELS = [CHANNELS,CHANNEL];
+    Equaliser = repmat(CHANNEL,1,size(QAM_matrix_data,2));
+    QAM_matrix = [QAM_matrix, QAM_matrix_data./Equaliser];
+
+
+
+
+elseif(Equalization == "packet")
+        disp("biem")
+end
+
+QAM_matrix(isinf(QAM_matrix)) = 0;
+QAM_matrix(isnan(QAM_matrix)) = 0;
+
+
+% Supply streamLength number of symbols (you can ignore this until exercise 4.2)
+%We need to truncate the array so that the dimensions fit again
+
+
+data_seq = QAM_matrix(:);
+
 end
 
