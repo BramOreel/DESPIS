@@ -3,6 +3,12 @@
 clc; clear; close all;
 
 
+
+
+
+
+
+
 %% Parameters.
 M =4; % QAM constelllation size
 Nq = log2(M);

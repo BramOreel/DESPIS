@@ -109,6 +109,15 @@ rx_bits = qam_demod(rx_qam,M,streamLength);
 %% Bit error rate
 BER = ber(rx_bits,bitStream);
 
+% Construct image from bitstream
+imageRx = bitstreamtoimage(rx_bits, imageSize, bitsPerPixel);
+
+% Plot images
+figure(1);
+subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
+subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
+disp(BER);
+
 
 
 t_packet = length(rx_qam*Nq*BW_usage)/(fs*100); %for LD + Lt packets; % Duration of one packet [s]
@@ -123,7 +132,7 @@ while idx <= nbPackets
         freq_res_MASK = [0;CHANNEL_MASK ;0; flipud(conj(CHANNEL_MASK))];
         h_est = ifft(freq_res,N);
 
-        figure(1);
+        figure(2);
         subplot(2,2,1);
         plot(h_est);
         title('Impulse response');
@@ -162,15 +171,3 @@ while idx <= nbPackets
     pause(t_packet);
     idx = idx + 1;
 end
-
-% 
-% A static or slowly changing impulse response and frequency response indicate a stable channel, suitable for high-speed communication.
-% Rapid time variations suggest a challenging environment, such as a mobile user or dynamic obstacles, requiring robust channel estimation and equalization techniques.
-% A frequency response with deep fading notches implies that certain subcarriers may experience severe attenuation, necessitating error correction or adaptive modulation schemes.
-
-
-
-
-
-
-
