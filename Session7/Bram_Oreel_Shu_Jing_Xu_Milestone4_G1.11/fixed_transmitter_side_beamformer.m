@@ -10,7 +10,7 @@ H12_full = [0;H12 ;0; flipud(conj(H12))];
 bins_a = (conj(H1)./H12);
 bins_b = (conj(H2)./H12);
 
-gen_fig = 0;
+gen_fig = 1;
 
 if(gen_fig)
     figure

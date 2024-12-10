@@ -13,7 +13,7 @@ Lt = 10; % Number of training frames.
 fs = 16000; % Sampling frequency [Hz].
 channel = "simulation"; % simulation or acoustic
 
-mu = 0.5; % NLMS stepsize
+mu = 0.02; % NLMS stepsize
 alpha = 1; % NLMS regularization
 type = "nlms";
 Nswitch = (Lt)*(N+Lcp); % The simulated channel changes every Nswitch number of samples.

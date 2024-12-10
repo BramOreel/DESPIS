@@ -102,6 +102,8 @@ end
 [qam_seq, CHANNELS] = ofdm_demod_stereo(aligned_Rx,N,Lcp,train_frame,Lt,Ld,M,nbPackets,"packet",mu,alpha);
 scatterplot(qam_seq)
 CHANNEL_combo = CHANNELS(:,1); % Extract first estimated channel
+figure
+plot(abs(CHANNEL_combo).^2)
 
 % QAM demodulation.
 rx_bits = qam_demod(qam_seq,M,streamLength);
