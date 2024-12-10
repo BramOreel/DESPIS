@@ -6,14 +6,14 @@ clear; close all; clc;
 % Exercise session 7: DMT-OFDM transmission with DD LMS channel tracking.
 N = 1024; % Total number of symbols in a single OFDM frame, i.e., the DFT size
 Lcp = 300; % Cyclic prefix length [samples].
-M = 8; % QAM constellation size.
+M = 16; % QAM constellation size.
 Nq = log2(M);
-SNR = 30; % SNR of transmission [dB].
-Lt = 20; % Number of training frames.
+SNR = 20; % SNR of transmission [dB].
+Lt = 10; % Number of training frames.
 fs = 16000; % Sampling frequency [Hz].
-channel = "simulation"; % simulation or acoustic
+channel = "acoustic"; % simulation or acoustic
 
-mu = 0.02; % NLMS stepsize
+mu = 0.5; % NLMS stepsize
 alpha = 1; % NLMS regularization
 type = "nlms";
 Nswitch = (Lt)*(N+Lcp); % The simulated channel changes every Nswitch number of samples.
@@ -21,7 +21,7 @@ smoothing_factor = .99; % Smoothing factor for simulated channel (see simulate_c
 
 % bitloading
 ON_OFF_mask = ones(N/2-1,1); % Default all bins to one for regular transmission
-BW_usage = 60; % Fraction of bins to use for on-off bitloading
+BW_usage = 80; % Fraction of bins to use for on-off bitloading
 bitloading_flag = 1; % If 1 then on-off bitloading is enabled.
 
 %% Determine bit loading
@@ -113,9 +113,9 @@ BER = ber(rx_bits,bitStream);
 imageRx = bitstreamtoimage(rx_bits, imageSize, bitsPerPixel);
 
 % Plot images
-figure(1);
-subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
-subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
+%figure(1);
+%subplot(2,1,1); colormap(colorMap); image(imageData); axis image; title('Original image'); drawnow;
+%subplot(2,1,2); colormap(colorMap); image(imageRx); axis image; title(['Received image']); drawnow;
 disp(BER);
 
 
