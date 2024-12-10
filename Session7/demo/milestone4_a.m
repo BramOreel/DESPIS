@@ -47,7 +47,7 @@ for mu = [0.02 0.1 0.2 0.5] % List of stepsizes
     w(1) = (1 + delta)/conj(Hk); 
     for n = 1:length(Xk)-1
         % Apply filter.
-        estXk = conj(w(n))*Yk(n);
+        estXk = conj(w(n)).*Yk(n);
         % Reconstruct transmitted signal.
         rec_Xk(n) = qammod(qamdemod(estXk,M),M);
         % Calculate error signal.

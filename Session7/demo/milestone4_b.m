@@ -11,7 +11,7 @@ Nq = log2(M);
 SNR = 20; % SNR of transmission [dB].
 Lt = 10; % Number of training frames.
 fs = 16000; % Sampling frequency [Hz].
-channel = "acoustic"; % simulation or acoustic
+channel = "simulation"; % simulation or acoustic
 
 mu = 0.5; % NLMS stepsize
 alpha = 1; % NLMS regularization
